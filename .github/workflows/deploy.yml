@@ -21,7 +21,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Generate Prisma client
-        run: npx prisma generate --schema src/prisma/schema.prisma
+        run: npx prisma generate
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
