@@ -30,3 +30,25 @@ model Company {
   updatedAt DateTime @updatedAt
   User      User?
 }
+
+model Intern {
+  id        String   @id @default(cuid())
+  name      String
+  lastName  String
+  document  String @unique
+  gender    String @db.Char(1)    
+  birthdate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Mentor {
+  id        String   @id @default(cuid())
+  name      String
+  lastName  String
+  document  String @unique
+  gender    String @db.Char(1)   
+  birthdate DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
