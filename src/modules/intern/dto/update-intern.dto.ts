@@ -3,5 +3,5 @@ import { IsOptional, IsString } from 'class-validator';
 export class UpdateInternDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  firstNames?: string;
 }

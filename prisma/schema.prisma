@@ -24,22 +24,86 @@ model User {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  User      User?
+  id                String   @id @default(cuid())
+  ruc               String?  @unique
+  email             String   @unique
+  contactName       String
+  phone             String   @db.VarChar(15)
+  country           String
+  organizationName  String
+  organizationSize  OrganizationSize
+  sector            String
+  topicsOfInterest  TopicCode[]  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  User              User?
 }
 
 model Intern {
-  id        String   @id @default(cuid())
-  name      String
-  lastName  String
-  document  String @unique
-  gender    String @db.Char(1)    
-  birthdate DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String        @id @default(cuid())
+  documentType     DocumentType?   
+  document         String?       @unique @db.VarChar(15)
+  email            String        @unique
+  firstNames       String
+  lastNameFather   String
+  lastNameMother   String
+  phone            String        @db.VarChar(15)
+  universityName   String
+  profession       String
+  graduationYear   Int
+  referralSource   String
+  topicsOfInterest TopicCode[]   
+  country          String
+  peruDepartment   PeruDepartment?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+enum DocumentType {
+  DNI
+  CE
+  PASSPORT
+}
+
+enum OrganizationSize {
+  SMALL  // Micro or Small
+  LARGE  // Medium or Large
+}
+
+enum TopicCode {
+  HC  // Carbon Footprint and Climate Change
+  HH  // Water Footprint and Responsible Water Management
+  CN  // Carbon Neutrality
+}
+
+
+enum PeruDepartment {
+  AMAZONAS
+  ANCASH
+  APURIMAC
+  AREQUIPA
+  AYACUCHO
+  CAJAMARCA
+  CALLAO
+  CUSCO
+  HUANCAVELICA
+  HUANUCO
+  ICA
+  JUNIN
+  LA_LIBERTAD
+  LAMBAYEQUE
+  LIMA_METROPOLITANA
+  LIMA_PROVINCIAS
+  LORETO
+  MADRE_DE_DIOS
+  MOQUEGUA
+  PASCO
+  PIURA
+  PUNO
+  SAN_MARTIN
+  TACNA
+  TUMBES
+  UCAYALI
 }
 
 model Mentor {

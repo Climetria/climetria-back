@@ -1,4 +1,5 @@
 import { Expose, plainToInstance } from 'class-transformer';
+import { OrganizationSize, TopicCode } from '@prisma/client';
 import { Company } from '../entities/company.entity';
 
 export class CompanyResponseDto {
@@ -6,7 +7,31 @@ export class CompanyResponseDto {
   id: string;
 
   @Expose()
-  name: string;
+  ruc?: string;
+
+  @Expose()
+  email: string;
+
+  @Expose()
+  contactName: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  organizationName: string;
+
+  @Expose()
+  organizationSize: OrganizationSize;
+
+  @Expose()
+  sector: string;
+
+  @Expose()
+  topicsOfInterest: TopicCode[];
 
   @Expose()
   createdAt: Date;

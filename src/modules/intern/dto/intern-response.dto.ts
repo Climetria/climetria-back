@@ -1,24 +1,49 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { Intern } from '../entities/intern.entity';
+import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
 
 export class InternResponseDto {
   @Expose()
   id: string;
 
   @Expose()
-  name: string;
+  documentType?: DocumentType;
 
   @Expose()
-  lastName: string;
+  document?: string;
 
   @Expose()
-  document: string;
+  email: string;
 
   @Expose()
-  gender: string;
+  firstNames: string;
 
   @Expose()
-  birthdate: Date;
+  lastNameFather: string;
+
+  @Expose()
+  lastNameMother: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  universityName: string;
+
+  @Expose()
+  profession: string;
+
+  @Expose()
+  graduationYear: number;
+
+  @Expose()
+  topicsOfInterest: TopicCode[];
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  peruDepartment?: PeruDepartment;
 
   @Expose()
   createdAt: Date;
