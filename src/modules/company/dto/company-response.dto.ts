@@ -1,22 +1,47 @@
 import { Expose, plainToInstance } from 'class-transformer';
+import { OrganizationSize, TopicCode } from '@prisma/client';
 import { Company } from '../entities/company.entity';
 
 export class CompanyResponseDto {
-    @Expose()
-    id: string;
+  @Expose()
+  id: string;
 
-    @Expose()
-    name: string;
+  @Expose()
+  ruc?: string;
 
-    @Expose()
-    createdAt: Date;
+  @Expose()
+  email: string;
 
-    @Expose()
-    updatedAt: Date;
+  @Expose()
+  contactName: string;
 
-    static fromEntity(entity: Company): CompanyResponseDto {
-        return plainToInstance(CompanyResponseDto, entity, {
-            excludeExtraneousValues: true,
-        });
-    }
+  @Expose()
+  phone: string;
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  organizationName: string;
+
+  @Expose()
+  organizationSize: OrganizationSize;
+
+  @Expose()
+  sector: string;
+
+  @Expose()
+  topicsOfInterest: TopicCode[];
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
+
+  static fromEntity(entity: Company): CompanyResponseDto {
+    return plainToInstance(CompanyResponseDto, entity, {
+      excludeExtraneousValues: true,
+    });
+  }
 }
