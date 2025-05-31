@@ -11,4 +11,4 @@ import { MentorModule } from './modules/mentor/mentor.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

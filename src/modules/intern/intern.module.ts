@@ -4,6 +4,6 @@ import { InternController } from './intern.controller';
 
 @Module({
   providers: [InternService],
-  controllers: [InternController]
+  controllers: [InternController],
 })
 export class InternModule {}
