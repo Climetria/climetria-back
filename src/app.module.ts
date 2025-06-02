@@ -5,9 +5,20 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { CompanyModule } from './modules/company/company.module';
 import { InternModule } from './modules/intern/intern.module';
 import { MentorModule } from './modules/mentor/mentor.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [PrismaModule, CompanyModule, InternModule, MentorModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    PrismaModule,
+    CompanyModule,
+    InternModule,
+    MentorModule,
+    AuthModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
