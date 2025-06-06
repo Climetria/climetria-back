@@ -7,7 +7,7 @@ export class CompanyResponseDto {
   id: string;
 
   @Expose()
-  ruc?: string;
+  ruc: string;
 
   @Expose()
   email: string;
@@ -34,10 +34,16 @@ export class CompanyResponseDto {
   topicsOfInterest: TopicCode[];
 
   @Expose()
+  courseId?: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  deletedAt?: Date;
 
   static fromEntity(entity: Company): CompanyResponseDto {
     return plainToInstance(CompanyResponseDto, entity, {

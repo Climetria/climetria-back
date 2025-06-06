@@ -7,6 +7,7 @@ import {
 export class Company {
   constructor(
     public readonly id: string,
+    public ruc: string,
     public email: string,
     public contactName: string,
     public phone: string,
@@ -17,12 +18,14 @@ export class Company {
     public topicsOfInterest: TopicCode[],
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
-    public ruc?: string,
+    public courseId?: string,
+    public deletedAt?: Date,
   ) {}
 
   static fromPrisma(data: CompanyModel): Company {
     return new Company(
       data.id,
+      data.ruc,
       data.email,
       data.contactName,
       data.phone,
@@ -33,7 +36,8 @@ export class Company {
       data.topicsOfInterest,
       data.createdAt,
       data.updatedAt,
-      data.ruc ?? undefined,
+      data.courseId ?? undefined,
+      data.deletedAt ?? undefined,
     );
   }
 }

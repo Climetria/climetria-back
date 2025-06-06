@@ -25,7 +25,7 @@ model User {
 
 model Company {
   id                String   @id @default(cuid())
-  ruc               String?  @unique
+  ruc               String   @unique
   email             String   @unique
   contactName       String
   phone             String   @db.VarChar(15)
@@ -33,16 +33,20 @@ model Company {
   organizationName  String
   organizationSize  OrganizationSize
   sector            String
-  topicsOfInterest  TopicCode[]  
+  topicsOfInterest  TopicCode[]
+  courseId          String?
+  course            Course?  @relation(fields: [courseId], references: [id])
+  interns           Intern[]  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  deletedAt         DateTime?
   User              User?
 }
 
 model Intern {
   id               String        @id @default(cuid())
-  documentType     DocumentType?   
-  document         String?       @unique @db.VarChar(15)
+  documentType     DocumentType   
+  document         String        @unique @db.VarChar(15)
   email            String        @unique
   firstNames       String
   lastNameFather   String
@@ -55,8 +59,44 @@ model Intern {
   topicsOfInterest TopicCode[]   
   country          String
   peruDepartment   PeruDepartment?
+  courseId         String?
+  course           Course?       @relation(fields: [courseId], references: [id])
+  companyId        String?
+  company          Company?      @relation(fields: [companyId], references: [id])
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+}
+
+model Mentor {
+  id               String        @id @default(cuid())
+  documentType     DocumentType   
+  document         String        @unique @db.VarChar(15)
+  email            String        @unique
+  firstNames       String
+  lastNameFather   String
+  lastNameMother   String
+  phone            String
+  country          String
+  peruDepartment   PeruDepartment?
+  courseId         String?
+  course           Course?       @relation(fields: [courseId], references: [id]) 
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  deletedAt        DateTime?
+}
+
+model Course {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  year        Int
+  companies   Company[]
+  interns     Intern[]
+  mentors     Mentor[]    
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime? 
 }
 
 enum DocumentType {
@@ -75,7 +115,6 @@ enum TopicCode {
   HH  // Water Footprint and Responsible Water Management
   CN  // Carbon Neutrality
 }
-
 
 enum PeruDepartment {
   AMAZONAS
@@ -106,13 +145,3 @@ enum PeruDepartment {
   UCAYALI
 }
 
-model Mentor {
-  id        String   @id @default(cuid())
-  name      String
-  lastName  String
-  document  String @unique
-  gender    String @db.Char(1)   
-  birthdate DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}

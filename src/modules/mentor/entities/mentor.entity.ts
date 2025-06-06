@@ -1,27 +1,43 @@
-import { Mentor as MentorModel } from '@prisma/client';
+import {
+  Mentor as MentorModel,
+  DocumentType,
+  PeruDepartment,
+} from '@prisma/client';
 
 export class Mentor {
   constructor(
     public readonly id: string,
-    public name: string,
-    public lastName: string,
+    public documentType: DocumentType,
     public document: string,
-    public gender: string,
-    public birthdate: Date,
+    public email: string,
+    public firstNames: string,
+    public lastNameFather: string,
+    public lastNameMother: string,
+    public phone: string,
+    public country: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public peruDepartment?: PeruDepartment,
+    public courseId?: string,
+    public deletedAt?: Date,
   ) {}
 
   static fromPrisma(data: MentorModel): Mentor {
     return new Mentor(
       data.id,
-      data.name,
-      data.lastName,
+      data.documentType,
       data.document,
-      data.gender,
-      data.birthdate,
+      data.email,
+      data.firstNames,
+      data.lastNameFather,
+      data.lastNameMother,
+      data.phone,
+      data.country,
       data.createdAt,
       data.updatedAt,
+      data.peruDepartment ?? undefined,
+      data.courseId ?? undefined,
+      data.deletedAt ?? undefined,
     );
   }
 }

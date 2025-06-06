@@ -8,31 +8,56 @@ import { Company } from './entities/company.entity';
 export class CompanyService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(dto: CreateCompanyDto): Promise<Company> {
-    const company = await this.prisma.company.create({ data: dto });
-    return Company.fromPrisma(company);
-  }
-
-  async findAll(): Promise<Company[]> {
-    const companies = await this.prisma.company.findMany();
-    return companies.map((c) => Company.fromPrisma(c));
-  }
-
-  async findOne(id: string): Promise<Company> {
-    const company = await this.prisma.company.findUnique({ where: { id } });
-    if (!company) throw new NotFoundException('Company not found');
-    return Company.fromPrisma(company);
-  }
-
-  async update(id: string, dto: UpdateCompanyDto): Promise<Company> {
-    const company = await this.prisma.company.update({
-      where: { id },
-      data: dto,
+  async create(courseId: string, dto: CreateCompanyDto): Promise<Company> {
+    const company = await this.prisma.company.create({
+      data: {
+        ...dto,
+        courseId,
+      },
     });
     return Company.fromPrisma(company);
   }
 
-  async remove(id: string): Promise<void> {
-    await this.prisma.company.delete({ where: { id } });
+  async findAllByCourse(courseId: string): Promise<Company[]> {
+    const companies = await this.prisma.company.findMany({
+      where: {
+        courseId,
+        deletedAt: null,
+      },
+    });
+    return companies.map((c) => Company.fromPrisma(c));
+  }
+
+  async findOne(courseId: string, companyId: string): Promise<Company> {
+    const company = await this.prisma.company.findUnique({
+      where: {
+        id: companyId,
+        courseId,
+        deletedAt: null,
+      },
+    });
+    if (!company) {
+      throw new NotFoundException('Company not found in this course');
+    }
+    return Company.fromPrisma(company);
+  }
+
+  async update(
+    courseId: string,
+    companyId: string,
+    dto: UpdateCompanyDto,
+  ): Promise<Company> {
+    const company = await this.prisma.company.update({
+      where: { id: companyId },
+      data: { ...dto, courseId },
+    });
+    return Company.fromPrisma(company);
+  }
+
+  async softDelete(courseId: string, companyId: string): Promise<void> {
+    await this.prisma.company.update({
+      where: { id: companyId },
+      data: { deletedAt: new Date() },
+    });
   }
 }

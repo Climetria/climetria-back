@@ -10,11 +10,10 @@ import {
 import { OrganizationSize, TopicCode } from '@prisma/client';
 
 export class CreateCompanyDto {
-  @IsOptional()
   @IsString()
   @Length(11, 11)
   @Matches(/^\d{11}$/)
-  ruc?: string;
+  ruc: string;
 
   @IsEmail()
   email: string;
@@ -40,4 +39,8 @@ export class CreateCompanyDto {
   @IsArray()
   @IsEnum(TopicCode, { each: true })
   topicsOfInterest: TopicCode[];
+
+  @IsOptional()
+  @IsString()
+  courseId?: string;
 }
