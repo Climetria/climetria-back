@@ -7,10 +7,10 @@ export class InternResponseDto {
   id: string;
 
   @Expose()
-  documentType?: DocumentType;
+  documentType: DocumentType;
 
   @Expose()
-  document?: string;
+  document: string;
 
   @Expose()
   email: string;
@@ -37,6 +37,9 @@ export class InternResponseDto {
   graduationYear: number;
 
   @Expose()
+  referralSource: string;
+
+  @Expose()
   topicsOfInterest: TopicCode[];
 
   @Expose()
@@ -46,10 +49,19 @@ export class InternResponseDto {
   peruDepartment?: PeruDepartment;
 
   @Expose()
+  courseId?: string;
+
+  @Expose()
+  companyId?: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  deletedAt?: Date;
 
   static fromEntity(entity: Intern): InternResponseDto {
     return plainToInstance(InternResponseDto, entity, {

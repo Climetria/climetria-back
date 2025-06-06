@@ -1,16 +1,37 @@
-import { IsDate, IsString } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { DocumentType, PeruDepartment } from '@prisma/client';
 
 export class CreateMentorDto {
-  @IsString()
-  name: string;
-  @IsString()
-  lastName: string;
+  @IsEnum(DocumentType)
+  documentType: DocumentType;
+
   @IsString()
   document: string;
+
+  @IsEmail()
+  email: string;
+
   @IsString()
-  gender: string;
-  @Transform(({ value }) => new Date(value))
-  @IsDate()
-  birthdate: Date;
+  firstNames: string;
+
+  @IsString()
+  lastNameFather: string;
+
+  @IsString()
+  lastNameMother: string;
+
+  @IsString()
+  phone: string;
+
+  @IsString()
+  country: string;
+
+  @IsOptional()
+  //@ValidateIf((o) => o.country?.toLowerCase() === 'peru')
+  @IsEnum(PeruDepartment)
+  peruDepartment?: PeruDepartment;
+
+  @IsOptional()
+  @IsString()
+  courseId?: string;
 }

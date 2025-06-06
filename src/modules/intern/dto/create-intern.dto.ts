@@ -1,24 +1,20 @@
 import {
   IsArray,
-  IsDate,
   IsEmail,
   IsEnum,
   IsInt,
   IsOptional,
   IsString,
-  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
 
 export class CreateInternDto {
-  @IsOptional()
   @IsEnum(DocumentType)
-  documentType?: DocumentType;
+  documentType: DocumentType;
 
-  @IsOptional()
   @IsString()
-  document?: string;
+  document: string;
 
   @IsEmail()
   email: string;
@@ -55,7 +51,16 @@ export class CreateInternDto {
   @IsString()
   country: string;
 
-  @ValidateIf((o) => o.country?.toLowerCase() === 'peru')
+  @IsOptional()
+  //@ValidateIf((o) => o.country?.toLowerCase() === 'peru')
   @IsEnum(PeruDepartment)
   peruDepartment?: PeruDepartment;
+
+  @IsOptional()
+  @IsString()
+  courseId?: string;
+
+  @IsOptional()
+  @IsString()
+  companyId?: string;
 }

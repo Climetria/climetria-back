@@ -1,30 +1,49 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { Mentor } from '../entities/mentor.entity';
+import { DocumentType, PeruDepartment } from '@prisma/client';
 
 export class MentorResponseDto {
   @Expose()
   id: string;
 
   @Expose()
-  name: string;
-
-  @Expose()
-  lastName: string;
+  documentType: DocumentType;
 
   @Expose()
   document: string;
 
   @Expose()
-  gender: string;
+  email: string;
 
   @Expose()
-  birthdate: Date;
+  firstNames: string;
+
+  @Expose()
+  lastNameFather: string;
+
+  @Expose()
+  lastNameMother: string;
+
+  @Expose()
+  phone: string;
+
+  @Expose()
+  country: string;
+
+  @Expose()
+  peruDepartment?: PeruDepartment;
+
+  @Expose()
+  courseId?: string;
 
   @Expose()
   createdAt: Date;
 
   @Expose()
   updatedAt: Date;
+
+  @Expose()
+  deletedAt?: Date;
 
   static fromEntity(entity: Mentor): MentorResponseDto {
     return plainToInstance(MentorResponseDto, entity, {

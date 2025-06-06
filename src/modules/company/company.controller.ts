@@ -2,13 +2,14 @@ import {
   Controller,
   Get,
   Post,
-  Put,
   Delete,
   Param,
   Body,
   HttpCode,
   HttpStatus,
   UseGuards,
+  NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
@@ -16,41 +17,60 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { CompanyResponseDto } from './dto/company-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 
-@Controller('companies')
+@Controller('courses/:courseId/companies')
 @UseGuards(JwtAuthGuard)
 export class CompanyController {
   constructor(private readonly companyService: CompanyService) {}
 
-  @Post()
-  async create(@Body() dto: CreateCompanyDto): Promise<CompanyResponseDto> {
-    const company = await this.companyService.create(dto);
-    return CompanyResponseDto.fromEntity(company);
-  }
-
   @Get()
-  async findAll(): Promise<CompanyResponseDto[]> {
-    const companies = await this.companyService.findAll();
-    return companies.map((c) => CompanyResponseDto.fromEntity(c));
+  async findAll(
+    @Param('courseId') courseId: string,
+  ): Promise<CompanyResponseDto[]> {
+    const companies = await this.companyService.findAllByCourse(courseId);
+    return companies.map((i) => CompanyResponseDto.fromEntity(i));
   }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<CompanyResponseDto> {
-    const company = await this.companyService.findOne(id);
+  @Get(':companyId')
+  async findOne(
+    @Param('courseId') courseId: string,
+    @Param('companyId') companyId: string,
+  ): Promise<CompanyResponseDto> {
+    const company = await this.companyService.findOne(courseId, companyId);
+
+    if (!company) {
+      throw new NotFoundException(
+        `Company with ID ${companyId} in course ${courseId} not found`,
+      );
+    }
+
     return CompanyResponseDto.fromEntity(company);
   }
 
-  @Put(':id')
+  @Post()
+  async create(
+    @Param('courseId') courseId: string,
+    @Body() dto: CreateCompanyDto,
+  ): Promise<CompanyResponseDto> {
+    const company = await this.companyService.create(courseId, dto);
+    return CompanyResponseDto.fromEntity(company);
+  }
+
+  @Patch(':companyId')
   async update(
-    @Param('id') id: string,
+    @Param('courseId') courseId: string,
+    @Param('companyId') companyId: string,
     @Body() dto: UpdateCompanyDto,
   ): Promise<CompanyResponseDto> {
-    const company = await this.companyService.update(id, dto);
+    const company = await this.companyService.update(courseId, companyId, dto);
     return CompanyResponseDto.fromEntity(company);
   }
 
-  @Delete(':id')
+  @Delete(':companyId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.companyService.remove(id);
+  async softDelete(
+    @Param('courseId') courseId: string,
+    @Param('companyId') companyId: string,
+  ): Promise<void> {
+    await this.companyService.softDelete(courseId, companyId);
   }
 }
