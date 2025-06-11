@@ -56,6 +56,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.REPO_DISPATCH_TOKEN }}
-          repository: your-org/climetria-infra
+          repository: papercubeconsulting/climetria-infra
           event-type: lambda-artifact-updated
           client-payload: '{"lambdaVersion": "${{ env.VERSION_ID }}"}'
