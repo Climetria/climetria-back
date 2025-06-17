@@ -2,6 +2,8 @@ import {
   Mentor as MentorModel,
   DocumentType,
   PeruDepartment,
+  MentorCourse,
+  MentorAssignment,
 } from '@prisma/client';
 
 export class Mentor {
@@ -18,11 +20,28 @@ export class Mentor {
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     public peruDepartment?: PeruDepartment,
-    public courseId?: string,
+    public courseIds?: string[],
+    public organizationIds?: string[],
     public deletedAt?: Date,
   ) {}
 
-  static fromPrisma(data: MentorModel): Mentor {
+  get courseStatus(): string {
+    return this.courseIds && this.courseIds.length > 0
+      ? 'assigned'
+      : 'unassigned';
+  }
+
+  get organizationStatus(): string {
+    return this.organizationIds && this.organizationIds.length > 0
+      ? 'assigned'
+      : 'unassigned';
+  }
+
+  static fromPrisma(
+    data: MentorModel & { mentorCourses?: MentorCourse[] } & {
+      mentorAssignments?: MentorAssignment[];
+    },
+  ): Mentor {
     return new Mentor(
       data.id,
       data.documentType,
@@ -36,7 +55,8 @@ export class Mentor {
       data.createdAt,
       data.updatedAt,
       data.peruDepartment ?? undefined,
-      data.courseId ?? undefined,
+      data.mentorCourses?.map((mc) => mc.courseId),
+      data.mentorAssignments?.map((ma) => ma.organizationId),
       data.deletedAt ?? undefined,
     );
   }

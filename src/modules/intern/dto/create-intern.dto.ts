@@ -5,6 +5,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
@@ -57,10 +58,7 @@ export class CreateInternDto {
   peruDepartment?: PeruDepartment;
 
   @IsOptional()
-  @IsString()
-  courseId?: string;
-
-  @IsOptional()
-  @IsString()
-  companyId?: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  courseIds?: string[];
 }

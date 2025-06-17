@@ -15,6 +15,24 @@ export class CourseResponseDto {
   year: number;
 
   @Expose()
+  mentorIds?: string[];
+
+  @Expose()
+  mentorStatus: string;
+
+  @Expose()
+  organizationIds?: string[];
+
+  @Expose()
+  organizationStatus: string;
+
+  @Expose()
+  internIds?: string[];
+
+  @Expose()
+  internStatus: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

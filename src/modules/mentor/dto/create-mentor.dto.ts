@@ -1,4 +1,11 @@
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { DocumentType, PeruDepartment } from '@prisma/client';
 
 export class CreateMentorDto {
@@ -32,6 +39,7 @@ export class CreateMentorDto {
   peruDepartment?: PeruDepartment;
 
   @IsOptional()
-  @IsString()
-  courseId?: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  courseIds?: string[];
 }

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from '../prisma/prisma.module';
-import { CompanyModule } from './modules/company/company.module';
+import { OrganizationModule } from './modules/organization/organization.module';
 import { InternModule } from './modules/intern/intern.module';
 import { MentorModule } from './modules/mentor/mentor.module';
 import { AuthModule } from './modules/auth/auth.module';
@@ -15,7 +15,7 @@ import { CourseModule } from './modules/course/course.module';
       isGlobal: true,
     }),
     PrismaModule,
-    CompanyModule,
+    OrganizationModule,
     InternModule,
     MentorModule,
     AuthModule,

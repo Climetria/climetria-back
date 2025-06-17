@@ -49,10 +49,16 @@ export class InternResponseDto {
   peruDepartment?: PeruDepartment;
 
   @Expose()
-  courseId?: string;
+  courseIds?: string[];
 
   @Expose()
-  companyId?: string;
+  courseStatus: string;
+
+  @Expose()
+  organizationIds?: string[];
+
+  @Expose()
+  organizationStatus: string;
 
   @Expose()
   createdAt: Date;

@@ -1,8 +1,8 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { OrganizationSize, TopicCode } from '@prisma/client';
-import { Company } from '../entities/company.entity';
+import { Organization } from '../entities/organization.entity';
 
-export class CompanyResponseDto {
+export class OrganizationResponseDto {
   @Expose()
   id: string;
 
@@ -34,7 +34,22 @@ export class CompanyResponseDto {
   topicsOfInterest: TopicCode[];
 
   @Expose()
-  courseId?: string;
+  courseIds?: string[];
+
+  @Expose()
+  courseStatus: string;
+
+  @Expose()
+  mentorIds?: string[];
+
+  @Expose()
+  mentorStatus: string;
+
+  @Expose()
+  internIds?: string[];
+
+  @Expose()
+  internStatus: string;
 
   @Expose()
   createdAt: Date;
@@ -45,8 +60,8 @@ export class CompanyResponseDto {
   @Expose()
   deletedAt?: Date;
 
-  static fromEntity(entity: Company): CompanyResponseDto {
-    return plainToInstance(CompanyResponseDto, entity, {
+  static fromEntity(entity: Organization): OrganizationResponseDto {
+    return plainToInstance(OrganizationResponseDto, entity, {
       excludeExtraneousValues: true,
     });
   }

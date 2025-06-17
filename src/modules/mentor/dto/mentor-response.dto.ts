@@ -34,7 +34,16 @@ export class MentorResponseDto {
   peruDepartment?: PeruDepartment;
 
   @Expose()
-  courseId?: string;
+  courseIds?: string[];
+
+  @Expose()
+  courseStatus: string;
+
+  @Expose()
+  organizationIds?: string[];
+
+  @Expose()
+  organizationStatus: string;
 
   @Expose()
   createdAt: Date;

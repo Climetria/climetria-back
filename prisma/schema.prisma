@@ -18,86 +18,147 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
-  company   Company? @relation(fields: [companyId], references: [id])
-  companyId String?  @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Company {
-  id                String   @id @default(cuid())
-  ruc               String   @unique
-  email             String   @unique
-  contactName       String
-  phone             String   @db.VarChar(15)
-  country           String
-  organizationName  String
-  organizationSize  OrganizationSize
-  sector            String
-  topicsOfInterest  TopicCode[]
-  courseId          String?
-  course            Course?  @relation(fields: [courseId], references: [id])
-  interns           Intern[]  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
-  User              User?
-}
-
-model Intern {
-  id               String        @id @default(cuid())
-  documentType     DocumentType   
-  document         String        @unique @db.VarChar(15)
-  email            String        @unique
-  firstNames       String
-  lastNameFather   String
-  lastNameMother   String
-  phone            String        @db.VarChar(15)
-  universityName   String
-  profession       String
-  graduationYear   Int
-  referralSource   String
-  topicsOfInterest TopicCode[]   
-  country          String
-  peruDepartment   PeruDepartment?
-  courseId         String?
-  course           Course?       @relation(fields: [courseId], references: [id])
-  companyId        String?
-  company          Company?      @relation(fields: [companyId], references: [id])
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
+model Course {
+  id                  String          @id @default(cuid())
+  name                String
+  description         String?
+  year                Int
+  mentorCourses       MentorCourse[]
+  organizationCourses OrganizationCourse[]
+  internCourses       InternCourse[] 
+  mentorAssignments   MentorAssignment[]
+  internAssignments   InternAssignment[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  deletedAt           DateTime? 
 }
 
 model Mentor {
-  id               String        @id @default(cuid())
-  documentType     DocumentType   
-  document         String        @unique @db.VarChar(15)
-  email            String        @unique
-  firstNames       String
-  lastNameFather   String
-  lastNameMother   String
-  phone            String
-  country          String
-  peruDepartment   PeruDepartment?
-  courseId         String?
-  course           Course?       @relation(fields: [courseId], references: [id]) 
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  deletedAt        DateTime?
+  id                  String        @id @default(cuid())
+  documentType        DocumentType   
+  document            String        @unique @db.VarChar(15)
+  email               String        @unique
+  firstNames          String
+  lastNameFather      String
+  lastNameMother      String
+  phone               String
+  country             String
+  peruDepartment      PeruDepartment?
+  mentorCourses       MentorCourse[]
+  mentorAssignments   MentorAssignment[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  deletedAt           DateTime?
 }
 
-model Course {
-  id          String    @id @default(cuid())
-  name        String
-  description String?
-  year        Int
-  companies   Company[]
-  interns     Intern[]
-  mentors     Mentor[]    
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? 
+model MentorCourse {
+  id        String   @id @default(cuid())
+  mentorId  String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  mentor    Mentor   @relation(fields: [mentorId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+
+  @@unique([mentorId, courseId])
+}
+
+model Organization {
+  id                  String   @id @default(cuid())
+  ruc                 String   @unique
+  email               String   @unique
+  contactName         String
+  phone               String   @db.VarChar(15)
+  country             String
+  organizationName    String
+  organizationSize    OrganizationSize
+  sector              String
+  topicsOfInterest    TopicCode[]
+  organizationCourses OrganizationCourse[]
+  mentorAssignments   MentorAssignment[]
+  internAssignments   InternAssignment[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  deletedAt           DateTime?
+}
+
+model OrganizationCourse {
+  id              String   @id @default(cuid())
+  organizationId  String
+  courseId        String
+  createdAt       DateTime @default(now())
+
+  organization    Organization   @relation(fields: [organizationId], references: [id])
+  course          Course         @relation(fields: [courseId], references: [id])
+
+  @@unique([organizationId, courseId])
+}
+
+model Intern {
+  id                  String        @id @default(cuid())
+  documentType        DocumentType   
+  document            String        @unique @db.VarChar(15)
+  email               String        @unique
+  firstNames          String
+  lastNameFather      String
+  lastNameMother      String
+  phone               String        @db.VarChar(15)
+  universityName      String
+  profession          String
+  graduationYear      Int
+  referralSource      String
+  topicsOfInterest    TopicCode[]   
+  country             String
+  peruDepartment      PeruDepartment?
+  internCourses       InternCourse[]
+  internAssignments   InternAssignment[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  deletedAt           DateTime?
+}
+
+model InternCourse {
+  id        String   @id @default(cuid())
+  internId  String
+  courseId  String
+  createdAt DateTime @default(now())
+
+  intern    Intern   @relation(fields: [internId], references: [id])
+  course    Course   @relation(fields: [courseId], references: [id])
+
+  @@unique([internId, courseId]) 
+}
+
+model MentorAssignment {
+  id             String       @id @default(cuid())
+  mentorId       String
+  organizationId String
+  courseId       String
+  createdAt      DateTime     @default(now())
+
+  mentor         Mentor       @relation(fields: [mentorId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  course         Course       @relation(fields: [courseId], references: [id])
+
+  @@unique([mentorId, organizationId, courseId]) 
+}
+
+model InternAssignment {
+  id             String       @id @default(cuid())
+  internId       String
+  organizationId String
+  courseId       String
+  createdAt      DateTime     @default(now())
+
+  intern         Intern       @relation(fields: [internId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  course         Course       @relation(fields: [courseId], references: [id])
+
+  @@unique([internId, organizationId, courseId]) 
 }
 
 enum DocumentType {

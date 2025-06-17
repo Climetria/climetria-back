@@ -4,12 +4,13 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  IsUUID,
   Length,
   Matches,
 } from 'class-validator';
 import { OrganizationSize, TopicCode } from '@prisma/client';
 
-export class CreateCompanyDto {
+export class CreateOrganizationDto {
   @IsString()
   @Length(11, 11)
   @Matches(/^\d{11}$/)
@@ -41,6 +42,7 @@ export class CreateCompanyDto {
   topicsOfInterest: TopicCode[];
 
   @IsOptional()
-  @IsString()
-  courseId?: string;
+  @IsArray()
+  @IsUUID('all', { each: true })
+  courseIds?: string[];
 }
