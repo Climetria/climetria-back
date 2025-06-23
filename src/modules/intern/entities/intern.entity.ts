@@ -5,6 +5,9 @@ import {
   PeruDepartment,
   InternCourse,
   InternAssignment,
+  Gender,
+  Major,
+  Grade,
 } from '@prisma/client';
 
 export class Intern {
@@ -16,8 +19,10 @@ export class Intern {
     public firstNames: string,
     public lastNameFather: string,
     public lastNameMother: string,
+    public gender: Gender,
     public phone: string,
     public universityName: string,
+    public majorInProgress: Major,
     public profession: string,
     public graduationYear: number,
     public referralSource,
@@ -28,6 +33,7 @@ export class Intern {
     public peruDepartment?: PeruDepartment,
     public courseIds?: string[],
     public organizationIds?: string[],
+    public gradeIds?: string[],
     public deletedAt?: Date,
   ) {}
 
@@ -46,7 +52,7 @@ export class Intern {
   static fromPrisma(
     data: InternModel & { internCourses?: InternCourse[] } & {
       internAssignments?: InternAssignment[];
-    },
+    } & { grade?: Grade[] },
   ): Intern {
     return new Intern(
       data.id,
@@ -56,8 +62,10 @@ export class Intern {
       data.firstNames,
       data.lastNameFather,
       data.lastNameMother,
+      data.gender,
       data.phone,
       data.universityName,
+      data.majorInProgress,
       data.profession,
       data.graduationYear,
       data.referralSource,
@@ -68,6 +76,7 @@ export class Intern {
       data.peruDepartment ?? undefined,
       data.internCourses?.map((ic) => ic.courseId),
       data.internAssignments?.map((ia) => ia.organizationId),
+      data.grade?.map((g) => g.id),
       data.deletedAt ?? undefined,
     );
   }

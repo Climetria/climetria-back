@@ -2,13 +2,21 @@ import {
   IsArray,
   IsEmail,
   IsEnum,
+  IsInt,
   IsOptional,
   IsString,
   IsUUID,
   Length,
   Matches,
 } from 'class-validator';
-import { OrganizationSize, TopicCode } from '@prisma/client';
+import { Type } from 'class-transformer';
+import {
+  GenderSelection,
+  Major,
+  OrganizationSize,
+  PeruDepartment,
+  TopicCode,
+} from '@prisma/client';
 
 export class CreateOrganizationDto {
   @IsString()
@@ -40,6 +48,24 @@ export class CreateOrganizationDto {
   @IsArray()
   @IsEnum(TopicCode, { each: true })
   topicsOfInterest: TopicCode[];
+
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  maximumNumberOfInterns?: number;
+
+  @IsOptional()
+  placeOfResidenceFilter?: PeruDepartment;
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(Major, { each: true })
+  studiedMajorFilter?: Major[];
+
+  @IsOptional()
+  @IsArray()
+  @IsEnum(GenderSelection, { each: true })
+  genderFilter?: GenderSelection[];
 
   @IsOptional()
   @IsArray()

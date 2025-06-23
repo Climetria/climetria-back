@@ -1,6 +1,12 @@
 import { Expose, plainToInstance } from 'class-transformer';
 import { Intern } from '../entities/intern.entity';
-import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
+import {
+  DocumentType,
+  Gender,
+  Major,
+  PeruDepartment,
+  TopicCode,
+} from '@prisma/client';
 
 export class InternResponseDto {
   @Expose()
@@ -25,10 +31,16 @@ export class InternResponseDto {
   lastNameMother: string;
 
   @Expose()
+  gender: Gender;
+
+  @Expose()
   phone: string;
 
   @Expose()
   universityName: string;
+
+  @Expose()
+  majorInProgress: Major;
 
   @Expose()
   profession: string;
@@ -59,6 +71,9 @@ export class InternResponseDto {
 
   @Expose()
   organizationStatus: string;
+
+  @Expose()
+  gradeIds?: string[];
 
   @Expose()
   createdAt: Date;

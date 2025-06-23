@@ -8,7 +8,13 @@ import {
   IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
+import {
+  DocumentType,
+  Gender,
+  Major,
+  PeruDepartment,
+  TopicCode,
+} from '@prisma/client';
 
 export class CreateInternDto {
   @IsEnum(DocumentType)
@@ -29,11 +35,17 @@ export class CreateInternDto {
   @IsString()
   lastNameMother: string;
 
+  @IsEnum(Gender)
+  gender: Gender;
+
   @IsString()
   phone: string;
 
   @IsString()
   universityName: string;
+
+  @IsEnum(Major)
+  majorInProgress: Major;
 
   @IsString()
   profession: string;

@@ -1,5 +1,11 @@
 import { Expose, plainToInstance } from 'class-transformer';
-import { OrganizationSize, TopicCode } from '@prisma/client';
+import {
+  GenderSelection,
+  Major,
+  OrganizationSize,
+  PeruDepartment,
+  TopicCode,
+} from '@prisma/client';
 import { Organization } from '../entities/organization.entity';
 
 export class OrganizationResponseDto {
@@ -32,6 +38,18 @@ export class OrganizationResponseDto {
 
   @Expose()
   topicsOfInterest: TopicCode[];
+
+  @Expose()
+  maximumNumberOfInterns?: number;
+
+  @Expose()
+  placeOfResidenceFilter?: PeruDepartment;
+
+  @Expose()
+  studiedMajorFilter?: Major[];
+
+  @Expose()
+  genderFilter?: GenderSelection[];
 
   @Expose()
   courseIds?: string[];

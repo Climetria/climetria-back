@@ -32,6 +32,7 @@ model Course {
   internCourses       InternCourse[] 
   mentorAssignments   MentorAssignment[]
   internAssignments   InternAssignment[]
+  grades              Grade[]
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
   deletedAt           DateTime? 
@@ -50,6 +51,7 @@ model Mentor {
   peruDepartment      PeruDepartment?
   mentorCourses       MentorCourse[]
   mentorAssignments   MentorAssignment[]
+  grades              Grade[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   deletedAt           DateTime?
@@ -68,22 +70,26 @@ model MentorCourse {
 }
 
 model Organization {
-  id                  String   @id @default(cuid())
-  ruc                 String   @unique
-  email               String   @unique
-  contactName         String
-  phone               String   @db.VarChar(15)
-  country             String
-  organizationName    String
-  organizationSize    OrganizationSize
-  sector              String
-  topicsOfInterest    TopicCode[]
-  organizationCourses OrganizationCourse[]
-  mentorAssignments   MentorAssignment[]
-  internAssignments   InternAssignment[]
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  deletedAt           DateTime?
+  id                      String   @id @default(cuid())
+  ruc                     String   @unique
+  email                   String   @unique
+  contactName             String
+  phone                   String   @db.VarChar(15)
+  country                 String
+  organizationName        String
+  organizationSize        OrganizationSize
+  sector                  String
+  topicsOfInterest        TopicCode[]
+  maximumNumberOfInterns  Int?
+  placeOfResidenceFilter  PeruDepartment?
+  studiedMajorFilter      Major[]
+  genderFilter            GenderSelection[]
+  organizationCourses     OrganizationCourse[]
+  mentorAssignments       MentorAssignment[]
+  internAssignments       InternAssignment[]
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  deletedAt               DateTime?
 }
 
 model OrganizationCourse {
@@ -106,8 +112,10 @@ model Intern {
   firstNames          String
   lastNameFather      String
   lastNameMother      String
+  gender              Gender
   phone               String        @db.VarChar(15)
   universityName      String
+  majorInProgress     Major
   profession          String
   graduationYear      Int
   referralSource      String
@@ -116,6 +124,7 @@ model Intern {
   peruDepartment      PeruDepartment?
   internCourses       InternCourse[]
   internAssignments   InternAssignment[]
+  grade               Grade[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   deletedAt           DateTime?
@@ -161,6 +170,37 @@ model InternAssignment {
   @@unique([internId, organizationId, courseId]) 
 }
 
+model Grade {
+  id                     String       @id @default(cuid())
+  internId               String
+  courseId               String
+  mentorId               String
+  s1                     Attendance? 
+  s2                     Attendance? 
+  s3                     Attendance? 
+  s4                     Attendance?
+  s5                     Attendance?
+  s6                     Attendance?    
+  initialCommitment      Int? 
+  assertiveCommunication Int?
+  punctuality            Int?
+  classParticipation     Int?
+  proactivity            Int?
+  communicationSkills    Int?
+  punctualityOfDelivery  Int?
+  redaction              Int?
+  performance            Int?
+  recommendation         String?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  intern                 Intern       @relation(fields: [internId], references: [id])
+  course                 Course       @relation(fields: [courseId], references: [id])
+  mentor                 Mentor       @relation(fields: [mentorId], references: [id])
+  
+  @@unique([internId, courseId])
+}
+
 enum DocumentType {
   DNI
   CE
@@ -176,6 +216,12 @@ enum TopicCode {
   HC  // Carbon Footprint and Climate Change
   HH  // Water Footprint and Responsible Water Management
   CN  // Carbon Neutrality
+}
+
+enum Major {
+  ADMINISTRATION
+  ENVIRONMENTAL_ENGINEERING
+  INDUSTRIAL_ENGINEERING
 }
 
 enum PeruDepartment {
@@ -207,3 +253,21 @@ enum PeruDepartment {
   UCAYALI
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  I_PREFER_NOT_TO_SAY_IT
+}
+
+enum GenderSelection {
+  MALE
+  FEMALE
+  BOTH
+}
+
+enum Attendance {
+  A
+  T
+  F
+  FJ
+}
