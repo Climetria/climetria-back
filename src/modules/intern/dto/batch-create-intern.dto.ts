@@ -10,7 +10,13 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { DocumentType, PeruDepartment, TopicCode } from '@prisma/client';
+import {
+  DocumentType,
+  Gender,
+  Major,
+  PeruDepartment,
+  TopicCode,
+} from '@prisma/client';
 
 export class BatchCreateInternDto {
   @IsEnum(DocumentType)
@@ -31,11 +37,17 @@ export class BatchCreateInternDto {
   @IsString()
   lastNameMother: string;
 
+  @IsEnum(Gender)
+  gender: Gender;
+
   @IsString()
   phone: string;
 
   @IsString()
   universityName: string;
+
+  @IsEnum(Major)
+  majorInProgress: Major;
 
   @IsString()
   profession: string;
