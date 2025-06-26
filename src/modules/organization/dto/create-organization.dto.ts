@@ -64,24 +64,6 @@ export class CreateOrganizationDto {
   genderFilter: GenderSelection;
 
   @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  maximumNumberOfInterns?: number;
-
-  @IsOptional()
-  placeOfResidenceFilter?: PeruDepartment;
-
-  @IsOptional()
-  @IsArray()
-  @IsEnum(Major, { each: true })
-  studiedMajorFilter?: Major[];
-
-  @IsOptional()
-  @IsArray()
-  @IsEnum(GenderSelection, { each: true })
-  genderFilter?: GenderSelection[];
-
-  @IsOptional()
   @IsArray()
   @IsUUID('all', { each: true })
   courseIds?: string[];
