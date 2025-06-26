@@ -1,7 +1,7 @@
-import { BatchCreateInternDto } from './batch-create-intern.dto';
+import { InternResponseDto } from './intern-response.dto';
 
 export class CsvUploadInternResponseDto {
-  validInterns: BatchCreateInternDto[];
+  validInterns: InternResponseDto[];
   invalidRows: InvalidCsvRow[];
 }
 

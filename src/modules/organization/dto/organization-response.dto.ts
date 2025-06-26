@@ -40,16 +40,16 @@ export class OrganizationResponseDto {
   topicsOfInterest: TopicCode[];
 
   @Expose()
-  maximumNumberOfInterns?: number;
+  maximumNumberOfInterns: number;
 
   @Expose()
-  placeOfResidenceFilter?: PeruDepartment;
+  placeOfResidenceFilter: PeruDepartment;
 
   @Expose()
-  studiedMajorFilter?: Major[];
+  studiedMajorFilter: Major[];
 
   @Expose()
-  genderFilter?: GenderSelection[];
+  genderFilter: GenderSelection;
 
   @Expose()
   courseIds?: string[];

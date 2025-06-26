@@ -17,7 +17,9 @@ import {
   parseCsvContent,
   ParsedRowResult,
 } from './utils/intern-csv-parser.utils';
-import { Prisma } from '@prisma/client';
+import { Gender, Prisma } from '@prisma/client';
+import { BatchCreateInternDto } from './dto/batch-create-intern.dto';
+import { InternResponseDto } from './dto/intern-response.dto';
 
 @Injectable()
 export class InternService {
@@ -42,6 +44,7 @@ export class InternService {
         include: {
           internCourses: true,
           internAssignments: true,
+          grade: true,
         },
       });
 
@@ -111,7 +114,7 @@ export class InternService {
             create: { courseId },
           },
         },
-        include: { internCourses: true, internAssignments: true },
+        include: { internCourses: true, internAssignments: true, grade: true },
       });
 
       return Intern.fromPrisma(newIntern);
@@ -131,9 +134,10 @@ export class InternService {
     }
   }
 
-  async batchParseAndValidateCsv(
-    csvContent: string,
-  ): Promise<CsvUploadInternResponseDto> {
+  private async batchParseAndValidateCsv(csvContent: string): Promise<{
+    validInterns: BatchCreateInternDto[];
+    invalidRows: InvalidCsvRow[];
+  }> {
     let parsedRows: ParsedRowResult[] = parseCsvContent(csvContent);
 
     const existingInterns = await this.prisma.intern.findMany({
@@ -158,9 +162,7 @@ export class InternService {
         rawData: r.originalRow,
       }));
 
-    const createInternsData = validRows.map((r) => ({
-      ...r.row,
-    }));
+    const createInternsData = validRows.map((r) => r.row);
 
     return {
       validInterns: createInternsData,
@@ -173,6 +175,8 @@ export class InternService {
   ): Promise<CsvUploadInternResponseDto> {
     const baseResult = await this.batchParseAndValidateCsv(csvContent);
 
+    const responseInterns: InternResponseDto[] = [];
+
     for (const internData of baseResult.validInterns) {
       try {
         const exists = await this.prisma.intern.findFirst({
@@ -182,15 +186,32 @@ export class InternService {
               { document: internData.document },
             ],
           },
+          include: {
+            internCourses: true,
+            internAssignments: true,
+            grade: true,
+          },
         });
 
         if (exists) {
+          const domain = Intern.fromPrisma(exists);
+          const dto = InternResponseDto.fromEntity(domain);
+          responseInterns.push(dto);
           continue;
         }
 
-        await this.prisma.intern.create({
+        const created = await this.prisma.intern.create({
           data: internData,
+          include: {
+            internCourses: true,
+            internAssignments: true,
+            grade: true,
+          },
         });
+
+        const domainIntern = Intern.fromPrisma(created);
+        const dto = InternResponseDto.fromEntity(domainIntern);
+        responseInterns.push(dto);
       } catch (error: unknown) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -207,7 +228,10 @@ export class InternService {
       }
     }
 
-    return baseResult;
+    return {
+      validInterns: responseInterns,
+      invalidRows: baseResult.invalidRows,
+    };
   }
 
   async batchCreateFromCsvInCourse(
@@ -216,28 +240,52 @@ export class InternService {
   ): Promise<CsvUploadInternResponseDto> {
     const baseResult = await this.batchParseAndValidateCsv(csvContent);
 
+    type InternWithRelations = Prisma.InternGetPayload<{
+      include: {
+        internCourses: true;
+        internAssignments: true;
+        grade: true;
+      };
+    }>;
+
+    const responseInterns: InternResponseDto[] = [];
+
     for (const internData of baseResult.validInterns) {
       try {
-        const intern = await this.prisma.intern.findFirst({
-          where: {
-            OR: [
-              { email: internData.email },
-              { document: internData.document },
-            ],
-          },
-          include: { internCourses: true },
-        });
+        const existing: InternWithRelations | null =
+          await this.prisma.intern.findFirst({
+            where: {
+              OR: [
+                { email: internData.email },
+                { document: internData.document },
+              ],
+            },
+            include: {
+              internCourses: true,
+              internAssignments: true,
+              grade: true,
+            },
+          });
 
-        if (!intern) {
-          await this.prisma.intern.create({
+        let intern: InternWithRelations;
+
+        if (!existing) {
+          intern = await this.prisma.intern.create({
             data: {
               ...internData,
               internCourses: {
                 create: [{ courseId }],
               },
             },
+            include: {
+              internCourses: true,
+              internAssignments: true,
+              grade: true,
+            },
           });
         } else {
+          intern = existing;
+
           const alreadyRelated = intern.internCourses.some(
             (relation) => relation.courseId === courseId,
           );
@@ -246,8 +294,21 @@ export class InternService {
             await this.prisma.internCourse.create({
               data: { internId: intern.id, courseId },
             });
+
+            intern = (await this.prisma.intern.findUnique({
+              where: { id: intern.id },
+              include: {
+                internCourses: true,
+                internAssignments: true,
+                grade: true,
+              },
+            })) as InternWithRelations;
           }
         }
+
+        const domain = Intern.fromPrisma(intern);
+        const dto = InternResponseDto.fromEntity(domain);
+        responseInterns.push(dto);
       } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -257,6 +318,7 @@ export class InternService {
             'The document or email is already registered.',
           );
         }
+
         throw new InternalServerErrorException(
           'An error occurred while creating the intern.',
         );
@@ -264,7 +326,7 @@ export class InternService {
     }
 
     return {
-      validInterns: baseResult.validInterns,
+      validInterns: responseInterns,
       invalidRows: baseResult.invalidRows,
     };
   }
@@ -323,6 +385,71 @@ export class InternService {
     } catch {
       throw new InternalServerErrorException(
         'An error occurred while retrieving interns from the course and the organization',
+      );
+    }
+  }
+
+  async findMatchingInternsForOrganization(
+    courseId: string,
+    organizationId: string,
+  ): Promise<Intern[]> {
+    try {
+      const organization = await this.prisma.organization.findUnique({
+        where: { id: organizationId },
+      });
+
+      if (!organization) {
+        throw new NotFoundException('Organization not found.');
+      }
+
+      const { studiedMajorFilter, genderFilter, placeOfResidenceFilter } =
+        organization;
+
+      let genderValues: Gender[] | undefined;
+      switch (genderFilter) {
+        case 'MALE_ONLY':
+          genderValues = ['MALE'];
+          break;
+        case 'FEMALE_ONLY':
+          genderValues = ['FEMALE'];
+          break;
+        case 'BOTH':
+          genderValues = ['MALE', 'FEMALE', 'I_PREFER_NOT_TO_SAY_IT'];
+          break;
+      }
+
+      const interns = await this.prisma.intern.findMany({
+        where: {
+          deletedAt: null,
+          internCourses: {
+            some: { courseId },
+          },
+          internAssignments: {
+            none: {
+              organizationId,
+            },
+          },
+          ...(studiedMajorFilter &&
+            studiedMajorFilter.length > 0 && {
+              majorInProgress: { in: studiedMajorFilter },
+            }),
+          ...(genderValues && {
+            gender: { in: genderValues },
+          }),
+          ...(placeOfResidenceFilter && {
+            peruDepartment: placeOfResidenceFilter,
+          }),
+        },
+        include: {
+          internCourses: true,
+          internAssignments: true,
+        },
+      });
+
+      return interns.map((i) => Intern.fromPrisma(i));
+    } catch {
+      throw new InternalServerErrorException(
+        'An error occurred while filtering interns for the organization.',
       );
     }
   }

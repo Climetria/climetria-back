@@ -49,6 +49,20 @@ export class CreateOrganizationDto {
   @IsEnum(TopicCode, { each: true })
   topicsOfInterest: TopicCode[];
 
+  @IsInt()
+  @Type(() => Number)
+  maximumNumberOfInterns: number;
+
+  @IsOptional()
+  placeOfResidenceFilter: PeruDepartment;
+
+  @IsArray()
+  @IsEnum(Major, { each: true })
+  studiedMajorFilter: Major[];
+
+  @IsEnum(GenderSelection)
+  genderFilter: GenderSelection;
+
   @IsOptional()
   @IsInt()
   @Type(() => Number)

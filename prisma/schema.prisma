@@ -80,10 +80,10 @@ model Organization {
   organizationSize        OrganizationSize
   sector                  String
   topicsOfInterest        TopicCode[]
-  maximumNumberOfInterns  Int?
-  placeOfResidenceFilter  PeruDepartment?
+  maximumNumberOfInterns  Int
+  placeOfResidenceFilter  PeruDepartment
   studiedMajorFilter      Major[]
-  genderFilter            GenderSelection[]
+  genderFilter            GenderSelection
   organizationCourses     OrganizationCourse[]
   mentorAssignments       MentorAssignment[]
   internAssignments       InternAssignment[]
@@ -219,9 +219,11 @@ enum TopicCode {
 }
 
 enum Major {
-  ADMINISTRATION
   ENVIRONMENTAL_ENGINEERING
-  INDUSTRIAL_ENGINEERING
+  FOREST_ENGINEERING
+  BIOLOGY
+  ENVIRONMENTAL_MANAGEMENT
+  OTHERS
 }
 
 enum PeruDepartment {
@@ -260,8 +262,8 @@ enum Gender {
 }
 
 enum GenderSelection {
-  MALE
-  FEMALE
+  MALE_ONLY
+  FEMALE_ONLY
   BOTH
 }
 

@@ -160,4 +160,16 @@ export class InternController {
       internId,
     );
   }
+
+  @Get('courses/:courseId/interns/organizations/:organizationId')
+  async findMatchingInternsForOrganization(
+    @Param('courseId') courseId: string,
+    @Param('organizationId') organizationId: string,
+  ): Promise<InternResponseDto[]> {
+    const interns = await this.internService.findMatchingInternsForOrganization(
+      courseId,
+      organizationId,
+    );
+    return interns.map((i) => InternResponseDto.fromEntity(i));
+  }
 }
