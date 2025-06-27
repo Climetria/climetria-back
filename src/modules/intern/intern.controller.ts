@@ -162,11 +162,11 @@ export class InternController {
   }
 
   @Get('courses/:courseId/interns/organizations/:organizationId')
-  async findMatchingInternsForOrganization(
+  async findMatchingForOrganization(
     @Param('courseId') courseId: string,
     @Param('organizationId') organizationId: string,
   ): Promise<InternResponseDto[]> {
-    const interns = await this.internService.findMatchingInternsForOrganization(
+    const interns = await this.internService.findMatchingForOrganization(
       courseId,
       organizationId,
     );

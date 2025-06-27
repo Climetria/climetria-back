@@ -33,6 +33,9 @@ export class CourseResponseDto {
   internStatus: string;
 
   @Expose()
+  gradeIds?: string[];
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

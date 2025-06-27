@@ -9,42 +9,13 @@ export class CourseService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCourseDto): Promise<Course> {
-    const { mentorIds, organizationIds, internIds, ...courseData } = dto;
-
     const course = await this.prisma.course.create({
-      data: {
-        ...courseData,
-        mentorCourses:
-          mentorIds && mentorIds.length > 0
-            ? {
-                createMany: {
-                  data: mentorIds.map((mentorId) => ({ mentorId })),
-                },
-              }
-            : undefined,
-        organizationCourses:
-          organizationIds && organizationIds.length > 0
-            ? {
-                createMany: {
-                  data: organizationIds.map((organizationId) => ({
-                    organizationId,
-                  })),
-                },
-              }
-            : undefined,
-        internCourses:
-          internIds && internIds.length > 0
-            ? {
-                createMany: {
-                  data: internIds.map((internId) => ({ internId })),
-                },
-              }
-            : undefined,
-      },
+      data: dto,
       include: {
         mentorCourses: true,
         organizationCourses: true,
         internCourses: true,
+        grades: true,
       },
     });
 
@@ -58,81 +29,74 @@ export class CourseService {
         mentorCourses: true,
         organizationCourses: true,
         internCourses: true,
+        grades: true,
       },
     });
     return data.map((c) => Course.fromPrisma(c));
   }
 
   async findOne(courseId: string): Promise<Course> {
-    const course = await this.prisma.course.findUnique({
-      where: { id: courseId, deletedAt: null },
+    const course = await this.prisma.course.findFirst({
+      where: {
+        id: courseId,
+        deletedAt: null,
+      },
       include: {
         mentorCourses: true,
         organizationCourses: true,
         internCourses: true,
+        grades: true,
       },
     });
-    if (!course) throw new NotFoundException('Course not found');
+
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
     return Course.fromPrisma(course);
   }
 
   async update(courseId: string, dto: UpdateCourseDto): Promise<Course> {
-    const { mentorIds, organizationIds, internIds, ...courseData } = dto;
-
-    const existingCourse = await this.prisma.course.findUnique({
+    const existingCourse = await this.prisma.course.findFirst({
       where: { id: courseId, deletedAt: null },
+    });
+
+    if (!existingCourse) {
+      throw new NotFoundException('Course not found');
+    }
+
+    await this.prisma.course.update({
+      where: { id: courseId },
+      data: dto,
+    });
+
+    const updatedCourse = await this.prisma.course.findUnique({
+      where: { id: courseId },
       include: {
         mentorCourses: true,
         organizationCourses: true,
         internCourses: true,
+        grades: true,
       },
     });
 
-    if (!existingCourse) throw new NotFoundException('Course not found');
-
-    if (mentorIds) {
-      await this.prisma.mentorCourse.deleteMany({
-        where: { courseId },
-      });
-      await this.prisma.mentorCourse.createMany({
-        data: mentorIds.map((mentorId) => ({ courseId, mentorId })),
-      });
-    }
-
-    if (organizationIds) {
-      await this.prisma.organizationCourse.deleteMany({
-        where: { courseId },
-      });
-      await this.prisma.organizationCourse.createMany({
-        data: organizationIds.map((organizationId) => ({
-          courseId,
-          organizationId,
-        })),
-      });
-    }
-
-    if (internIds) {
-      await this.prisma.internCourse.deleteMany({
-        where: { courseId },
-      });
-      await this.prisma.internCourse.createMany({
-        data: internIds.map((internId) => ({ courseId, internId })),
-      });
-    }
-
-    const course = await this.prisma.course.update({
-      where: { id: courseId, deletedAt: null },
-      data: courseData,
-      include: {
-        mentorCourses: true,
-        organizationCourses: true,
-        internCourses: true,
-      },
-    });
-    return Course.fromPrisma(course);
+    return Course.fromPrisma(updatedCourse!);
   }
 
   async softDelete(courseId: string): Promise<void> {
+    const existingCourse = await this.prisma.course.findFirst({
+      where: {
+        id: courseId,
+        deletedAt: null,
+      },
+    });
+
+    if (!existingCourse) {
+      throw new NotFoundException(
+        `Course with ID '${courseId}' not found or already deleted`,
+      );
+    }
+
     await this.prisma.course.update({
       where: { id: courseId },
       data: { deletedAt: new Date() },

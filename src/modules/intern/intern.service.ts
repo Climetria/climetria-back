@@ -389,7 +389,7 @@ export class InternService {
     }
   }
 
-  async findMatchingInternsForOrganization(
+  async findMatchingForOrganization(
     courseId: string,
     organizationId: string,
   ): Promise<Intern[]> {

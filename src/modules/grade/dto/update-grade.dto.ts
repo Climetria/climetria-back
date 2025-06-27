@@ -1,10 +1,9 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { Type } from 'class-transformer';
-import { CreateGradeDto } from './create-grade.dto';
 import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Attendance } from '@prisma/client';
+import { PartialType } from '@nestjs/mapped-types';
 
-export class UpdateGradeDto extends PartialType(CreateGradeDto) {
+export class UpdateGradeDtoBase {
   @IsOptional()
   @IsEnum(Attendance)
   s1?: Attendance;
@@ -89,3 +88,5 @@ export class UpdateGradeDto extends PartialType(CreateGradeDto) {
   @IsString()
   recommendation?: string;
 }
+
+export class UpdateGradeDto extends PartialType(UpdateGradeDtoBase) {}

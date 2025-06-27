@@ -3,6 +3,7 @@ import {
   MentorCourse,
   OrganizationCourse,
   InternCourse,
+  Grade,
 } from '@prisma/client';
 
 export class Course {
@@ -16,6 +17,7 @@ export class Course {
     public mentorIds?: string[],
     public organizationIds?: string[],
     public internIds?: string[],
+    public gradeIds?: string[],
     public deletedAt?: Date,
   ) {}
 
@@ -38,9 +40,12 @@ export class Course {
   }
 
   static fromPrisma(
-    data: CourseModel & { mentorCourses?: MentorCourse[] } & {
+    data: CourseModel & {
+      mentorCourses?: MentorCourse[];
       organizationCourses?: OrganizationCourse[];
-    } & { internCourses?: InternCourse[] },
+      internCourses?: InternCourse[];
+      grades?: Grade[];
+    },
   ): Course {
     return new Course(
       data.id,
@@ -52,6 +57,7 @@ export class Course {
       data.mentorCourses?.map((mc) => mc.mentorId),
       data.organizationCourses?.map((oc) => oc.organizationId),
       data.internCourses?.map((ic) => ic.internId),
+      data.grades?.map((g) => g.id),
       data.deletedAt ?? undefined,
     );
   }
