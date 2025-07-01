@@ -46,6 +46,7 @@ export class CreateInternDto {
   @IsEnum(Major)
   majorInProgress: Major;
 
+  @IsOptional()
   @IsString()
   otherMajor?: string;
 
