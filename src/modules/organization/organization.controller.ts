@@ -90,6 +90,7 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(organization);
   }
 
+  @Post('courses/:courseId/organizations')
   async createInCourseWithFilter(
     @Param('courseId') courseId: string,
     @Body()
