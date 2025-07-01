@@ -43,7 +43,7 @@ export class InternResponseDto {
   majorInProgress: Major;
 
   @Expose()
-  profession: string;
+  otherMajor?: string;
 
   @Expose()
   graduationYear: number;

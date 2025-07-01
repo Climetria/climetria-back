@@ -80,10 +80,6 @@ model Organization {
   organizationSize        OrganizationSize
   sector                  String
   topicsOfInterest        TopicCode[]
-  maximumNumberOfInterns  Int
-  placeOfResidenceFilter  PeruDepartment
-  studiedMajorFilter      Major[]
-  genderFilter            GenderSelection
   organizationCourses     OrganizationCourse[]
   mentorAssignments       MentorAssignment[]
   internAssignments       InternAssignment[]
@@ -93,10 +89,16 @@ model Organization {
 }
 
 model OrganizationCourse {
-  id              String   @id @default(cuid())
-  organizationId  String
-  courseId        String
-  createdAt       DateTime @default(now())
+  id                      String   @id @default(cuid())
+  organizationId          String
+  courseId                String
+  maximumNumberOfInterns  Int
+  placeOfResidenceFilter  PeruDepartment
+  studiedMajorFilter      Major[]
+  genderFilter            GenderSelection
+  extraRequirements       String?
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime  @updatedAt
 
   organization    Organization   @relation(fields: [organizationId], references: [id])
   course          Course         @relation(fields: [courseId], references: [id])
@@ -116,7 +118,7 @@ model Intern {
   phone               String        @db.VarChar(15)
   universityName      String
   majorInProgress     Major
-  profession          String
+  otherMajor          String?
   graduationYear      Int
   referralSource      String
   topicsOfInterest    TopicCode[]   
@@ -124,7 +126,7 @@ model Intern {
   peruDepartment      PeruDepartment?
   internCourses       InternCourse[]
   internAssignments   InternAssignment[]
-  grade               Grade[]
+  grades              Grade[]
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   deletedAt           DateTime?
@@ -174,7 +176,7 @@ model Grade {
   id                     String       @id @default(cuid())
   internId               String
   courseId               String
-  mentorId               String
+  mentorId               String?
   s1                     Attendance? 
   s2                     Attendance? 
   s3                     Attendance? 
@@ -196,7 +198,7 @@ model Grade {
 
   intern                 Intern       @relation(fields: [internId], references: [id])
   course                 Course       @relation(fields: [courseId], references: [id])
-  mentor                 Mentor       @relation(fields: [mentorId], references: [id])
+  mentor                 Mentor?       @relation(fields: [mentorId], references: [id])
   
   @@unique([internId, courseId])
 }

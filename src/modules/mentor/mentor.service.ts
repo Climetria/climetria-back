@@ -8,36 +8,31 @@ import { PrismaService } from 'prisma/prisma.service';
 import { CreateMentorDto } from './dto/create-mentor.dto';
 import { Mentor } from './entities/mentor.entity';
 import { UpdateMentorDto } from './dto/update-mentor.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MentorService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateMentorDto): Promise<Mentor> {
-    const { courseIds, ...internData } = dto;
-
     try {
       const mentor = await this.prisma.mentor.create({
         data: {
-          ...internData,
-          mentorCourses:
-            courseIds && courseIds.length > 0
-              ? {
-                  createMany: {
-                    data: courseIds.map((courseId) => ({ courseId })),
-                  },
-                }
-              : undefined,
+          ...dto,
         },
         include: {
           mentorCourses: true,
           mentorAssignments: true,
+          grades: true,
         },
       });
 
       return Mentor.fromPrisma(mentor);
     } catch (error) {
-      if ((error as { code?: string }).code === 'P2002') {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException(
           'The document or email is already registered.',
         );

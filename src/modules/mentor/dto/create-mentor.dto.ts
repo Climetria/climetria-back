@@ -1,11 +1,4 @@
-import {
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-  IsUUID,
-} from 'class-validator';
+import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
 import { DocumentType, PeruDepartment } from '@prisma/client';
 
 export class CreateMentorDto {
@@ -37,9 +30,4 @@ export class CreateMentorDto {
   //@ValidateIf((o) => o.country?.toLowerCase() === 'peru')
   @IsEnum(PeruDepartment)
   peruDepartment?: PeruDepartment;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  courseIds?: string[];
 }

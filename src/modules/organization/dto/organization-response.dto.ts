@@ -7,6 +7,7 @@ import {
   TopicCode,
 } from '@prisma/client';
 import { Organization } from '../entities/organization.entity';
+import { OrganizationFilter } from '../entities/organization-filter.entity';
 
 export class OrganizationResponseDto {
   @Expose()
@@ -40,18 +41,6 @@ export class OrganizationResponseDto {
   topicsOfInterest: TopicCode[];
 
   @Expose()
-  maximumNumberOfInterns: number;
-
-  @Expose()
-  placeOfResidenceFilter: PeruDepartment;
-
-  @Expose()
-  studiedMajorFilter: Major[];
-
-  @Expose()
-  genderFilter: GenderSelection;
-
-  @Expose()
   courseIds?: string[];
 
   @Expose()
@@ -80,6 +69,41 @@ export class OrganizationResponseDto {
 
   static fromEntity(entity: Organization): OrganizationResponseDto {
     return plainToInstance(OrganizationResponseDto, entity, {
+      excludeExtraneousValues: true,
+    });
+  }
+}
+
+export class OrganizationFilterResponseDto {
+  @Expose()
+  id: string;
+
+  @Expose()
+  courseId: string;
+
+  @Expose()
+  organizationId: string;
+
+  @Expose()
+  maximumNumberOfInterns: number;
+
+  @Expose()
+  placeOfResidenceFilter: PeruDepartment;
+
+  @Expose()
+  studiedMajorFilter: Major[];
+
+  @Expose()
+  genderFilter: GenderSelection;
+
+  @Expose()
+  createdAt: Date;
+
+  @Expose()
+  updatedAt: Date;
+
+  static fromEntity(entity: OrganizationFilter): OrganizationFilterResponseDto {
+    return plainToInstance(OrganizationFilterResponseDto, entity, {
       excludeExtraneousValues: true,
     });
   }

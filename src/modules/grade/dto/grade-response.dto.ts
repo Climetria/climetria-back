@@ -13,7 +13,7 @@ export class GradeResponseDto {
   courseId: string;
 
   @Expose()
-  mentorId: string;
+  mentorId?: string;
 
   @Expose()
   s1?: Attendance;

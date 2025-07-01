@@ -5,7 +5,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {
@@ -48,7 +47,7 @@ export class CreateInternDto {
   majorInProgress: Major;
 
   @IsString()
-  profession: string;
+  otherMajor?: string;
 
   @IsInt()
   @Type(() => Number)
@@ -68,9 +67,4 @@ export class CreateInternDto {
   //@ValidateIf((o) => o.country?.toLowerCase() === 'peru')
   @IsEnum(PeruDepartment)
   peruDepartment?: PeruDepartment;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  courseIds?: string[];
 }

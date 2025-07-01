@@ -11,8 +11,14 @@ import {
   Patch,
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { OrganizationResponseDto } from './dto/organization-response.dto';
+import {
+  CreateOrganizationDto,
+  CreateOrganizationFilterDto,
+} from './dto/create-organization.dto';
+import {
+  OrganizationFilterResponseDto,
+  OrganizationResponseDto,
+} from './dto/organization-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 
@@ -84,16 +90,29 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(organization);
   }
 
-  @Post('courses/:courseId/organizations')
-  async createInCourse(
+  async createInCourseWithFilter(
     @Param('courseId') courseId: string,
-    @Body() dto: CreateOrganizationDto,
-  ): Promise<OrganizationResponseDto> {
-    const organization = await this.organizationService.createInCourse(
+    @Body()
+    body: {
+      organization: CreateOrganizationDto;
+      filter: CreateOrganizationFilterDto;
+    },
+  ): Promise<{
+    organization: OrganizationResponseDto;
+    filter: OrganizationFilterResponseDto;
+  }> {
+    const { organization, filter } = body;
+
+    const result = await this.organizationService.createInCourseWithFilter(
       courseId,
-      dto,
+      organization,
+      filter,
     );
-    return OrganizationResponseDto.fromEntity(organization);
+
+    return {
+      organization: OrganizationResponseDto.fromEntity(result.organization),
+      filter: OrganizationFilterResponseDto.fromEntity(result.filter),
+    };
   }
 
   @Patch('courses/:courseId/organizations/:organizationId')

@@ -50,7 +50,7 @@ export class BatchCreateInternDto {
   majorInProgress: Major;
 
   @IsString()
-  profession: string;
+  otherMajor?: string;
 
   @IsInt()
   @Type(() => Number)

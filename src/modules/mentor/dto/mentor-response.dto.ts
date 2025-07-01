@@ -46,6 +46,9 @@ export class MentorResponseDto {
   organizationStatus: string;
 
   @Expose()
+  grades?: string[];
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

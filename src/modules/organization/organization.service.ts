@@ -5,116 +5,92 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
+import {
+  CreateOrganizationDto,
+  CreateOrganizationFilterDto,
+} from './dto/create-organization.dto';
 import { Organization } from './entities/organization.entity';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { OrganizationFilter } from './entities/organization-filter.entity';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrganizationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateOrganizationDto): Promise<Organization> {
-    const { courseIds, ...internData } = dto;
-
     try {
-      const organization = await this.prisma.organization.create({
-        data: {
-          ...internData,
-          organizationCourses:
-            courseIds && courseIds.length > 0
-              ? {
-                  createMany: {
-                    data: courseIds.map((courseId) => ({ courseId })),
-                  },
-                }
-              : undefined,
-        },
-        include: {
-          organizationCourses: true,
-          mentorAssignments: true,
-          internAssignments: true,
-        },
-      });
+      const organization = await this.prisma.organization.create({ data: dto });
 
       return Organization.fromPrisma(organization);
-    } catch (error: any) {
-      if ((error as { code?: string }).code === 'P2002') {
-        throw new ConflictException('The ruc or email is already registered.');
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('The RUC or email is already registered.');
       }
 
       throw new InternalServerErrorException(
-        'An error occurred while creating the organization.',
+        'An error occurred while creating the intern.',
       );
     }
   }
 
-  async createInCourse(
+  async createInCourseWithFilter(
     courseId: string,
-    dto: CreateOrganizationDto,
-  ): Promise<Organization> {
-    const organization = await this.prisma.organization.findFirst({
-      where: { ruc: dto.ruc },
-      include: { organizationCourses: true },
-    });
-
-    if (organization) {
-      const alreadyRelated = organization.organizationCourses.some(
-        (relation) => relation.courseId === courseId,
-      );
-
-      if (alreadyRelated) {
-        throw new ConflictException(
-          'The organization is already registered and associated with this course.',
-        );
-      }
-
-      await this.prisma.organizationCourse.create({
-        data: {
-          organizationId: organization.id,
-          courseId: courseId,
-        },
-      });
-
-      const updatedOrganization = await this.prisma.organization.findUnique({
-        where: { id: organization.id },
-        include: {
-          organizationCourses: true,
-          mentorAssignments: true,
-          internAssignments: true,
-        },
-      });
-
-      if (!updatedOrganization) {
-        throw new InternalServerErrorException(
-          'Unexpected error retrieving the updated organization.',
-        );
-      }
-
-      return Organization.fromPrisma(updatedOrganization);
-    }
-
+    organizationDto: CreateOrganizationDto,
+    filterDto: CreateOrganizationFilterDto,
+  ): Promise<{ organization: Organization; filter: OrganizationFilter }> {
     try {
-      const newOrganization = await this.prisma.organization.create({
-        data: {
-          ...dto,
-          organizationCourses: {
-            create: { courseId },
+      const organization = await this.prisma.organization.create({
+        data: organizationDto,
+      });
+
+      const existing = await this.prisma.organizationCourse.findUnique({
+        where: {
+          organizationId_courseId: {
+            organizationId: organization.id,
+            courseId,
           },
         },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          'This organization is already linked to the course.',
+        );
+      }
+
+      const filter = await this.prisma.organizationCourse.create({
+        data: {
+          ...filterDto,
+          courseId,
+          organizationId: organization.id,
+        },
         include: {
-          organizationCourses: true,
-          mentorAssignments: true,
-          internAssignments: true,
+          organization: true,
+          course: true,
         },
       });
 
-      return Organization.fromPrisma(newOrganization);
-    } catch (error: any) {
-      if ((error as { code?: string }).code === 'P2002') {
+      return {
+        organization: Organization.fromPrisma({
+          ...organization,
+          organizationCourses: [filter],
+        }),
+        filter: OrganizationFilter.fromPrisma(filter),
+      };
+    } catch (error: unknown) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
         throw new ConflictException('The ruc or email is already registered.');
       }
+
       throw new InternalServerErrorException(
-        'An error occurred while creating the organization.',
+        'An error occurred while creating the organization with its filter.',
       );
     }
   }

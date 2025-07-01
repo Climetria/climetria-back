@@ -11,9 +11,9 @@ export class Grade {
     public readonly id: string,
     public internId: string,
     public courseId: string,
-    public mentorId: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public mentorId?: string,
     public s1?: Attendance,
     public s2?: Attendance,
     public s3?: Attendance,
@@ -33,17 +33,19 @@ export class Grade {
   ) {}
 
   static fromPrisma(
-    data: GradeModel & { intern: Intern } & { course: Course } & {
-      mentor: Mentor;
+    data: GradeModel & {
+      intern: Intern;
+      course: Course;
+      mentor?: Mentor | null;
     },
   ): Grade {
     return new Grade(
       data.id,
       data.intern.id,
       data.course.id,
-      data.mentor.id,
       data.createdAt,
       data.updatedAt,
+      data.mentor?.id,
       data.s1 ?? undefined,
       data.s2 ?? undefined,
       data.s3 ?? undefined,

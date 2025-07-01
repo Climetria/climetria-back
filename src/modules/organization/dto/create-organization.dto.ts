@@ -5,7 +5,6 @@ import {
   IsInt,
   IsOptional,
   IsString,
-  IsUUID,
   Length,
   Matches,
 } from 'class-validator';
@@ -48,7 +47,9 @@ export class CreateOrganizationDto {
   @IsArray()
   @IsEnum(TopicCode, { each: true })
   topicsOfInterest: TopicCode[];
+}
 
+export class CreateOrganizationFilterDto {
   @IsInt()
   @Type(() => Number)
   maximumNumberOfInterns: number;
@@ -62,9 +63,4 @@ export class CreateOrganizationDto {
 
   @IsEnum(GenderSelection)
   genderFilter: GenderSelection;
-
-  @IsOptional()
-  @IsArray()
-  @IsUUID('all', { each: true })
-  courseIds?: string[];
 }

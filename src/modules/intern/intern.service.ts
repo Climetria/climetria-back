@@ -20,36 +20,18 @@ import {
 import { Gender, Prisma } from '@prisma/client';
 import { BatchCreateInternDto } from './dto/batch-create-intern.dto';
 import { InternResponseDto } from './dto/intern-response.dto';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class InternService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateInternDto): Promise<Intern> {
-    const { courseIds, ...internData } = dto;
-
     try {
-      const intern = await this.prisma.intern.create({
-        data: {
-          ...internData,
-          internCourses:
-            courseIds && courseIds.length > 0
-              ? {
-                  createMany: {
-                    data: courseIds.map((courseId) => ({ courseId })),
-                  },
-                }
-              : undefined,
-        },
-        include: {
-          internCourses: true,
-          internAssignments: true,
-          grade: true,
-        },
-      });
+      const intern = await this.prisma.intern.create({ data: dto });
 
       return Intern.fromPrisma(intern);
-    } catch (error: unknown) {
+    } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
@@ -69,13 +51,13 @@ export class InternService {
     courseId: string,
     dto: CreateInternDto,
   ): Promise<Intern> {
-    const intern = await this.prisma.intern.findFirst({
+    const existingIntern = await this.prisma.intern.findFirst({
       where: { document: dto.document },
-      include: { internCourses: true },
+      include: { internCourses: true, grades: true },
     });
 
-    if (intern) {
-      const alreadyRelated = intern.internCourses.some(
+    if (existingIntern) {
+      const alreadyRelated = existingIntern.internCourses.some(
         (relation) => relation.courseId === courseId,
       );
 
@@ -87,14 +69,36 @@ export class InternService {
 
       await this.prisma.internCourse.create({
         data: {
-          internId: intern.id,
-          courseId: courseId,
+          internId: existingIntern.id,
+          courseId,
         },
       });
 
+      const existingGrade = await this.prisma.grade.findUnique({
+        where: {
+          internId_courseId: {
+            internId: existingIntern.id,
+            courseId,
+          },
+        },
+      });
+
+      if (!existingGrade) {
+        await this.prisma.grade.create({
+          data: {
+            internId: existingIntern.id,
+            courseId,
+          },
+        });
+      }
+
       const updatedIntern = await this.prisma.intern.findUnique({
-        where: { id: intern.id },
-        include: { internCourses: true, internAssignments: true },
+        where: { id: existingIntern.id },
+        include: {
+          internCourses: true,
+          internAssignments: true,
+          grades: true,
+        },
       });
 
       if (!updatedIntern) {
@@ -113,14 +117,23 @@ export class InternService {
           internCourses: {
             create: { courseId },
           },
+          grades: {
+            create: {
+              courseId,
+            },
+          },
         },
-        include: { internCourses: true, internAssignments: true, grade: true },
+        include: {
+          internCourses: true,
+          internAssignments: true,
+          grades: true,
+        },
       });
 
       return Intern.fromPrisma(newIntern);
-    } catch (error: unknown) {
+    } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error instanceof PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
         throw new ConflictException(
@@ -189,7 +202,7 @@ export class InternService {
           include: {
             internCourses: true,
             internAssignments: true,
-            grade: true,
+            grades: true,
           },
         });
 
@@ -205,7 +218,7 @@ export class InternService {
           include: {
             internCourses: true,
             internAssignments: true,
-            grade: true,
+            grades: true,
           },
         });
 
@@ -244,7 +257,7 @@ export class InternService {
       include: {
         internCourses: true;
         internAssignments: true;
-        grade: true;
+        grades: true;
       };
     }>;
 
@@ -263,7 +276,7 @@ export class InternService {
             include: {
               internCourses: true,
               internAssignments: true,
-              grade: true,
+              grades: true,
             },
           });
 
@@ -280,7 +293,7 @@ export class InternService {
             include: {
               internCourses: true,
               internAssignments: true,
-              grade: true,
+              grades: true,
             },
           });
         } else {
@@ -300,7 +313,7 @@ export class InternService {
               include: {
                 internCourses: true,
                 internAssignments: true,
-                grade: true,
+                grades: true,
               },
             })) as InternWithRelations;
           }
@@ -393,65 +406,67 @@ export class InternService {
     courseId: string,
     organizationId: string,
   ): Promise<Intern[]> {
-    try {
-      const organization = await this.prisma.organization.findUnique({
-        where: { id: organizationId },
-      });
-
-      if (!organization) {
-        throw new NotFoundException('Organization not found.');
-      }
-
-      const { studiedMajorFilter, genderFilter, placeOfResidenceFilter } =
-        organization;
-
-      let genderValues: Gender[] | undefined;
-      switch (genderFilter) {
-        case 'MALE_ONLY':
-          genderValues = ['MALE'];
-          break;
-        case 'FEMALE_ONLY':
-          genderValues = ['FEMALE'];
-          break;
-        case 'BOTH':
-          genderValues = ['MALE', 'FEMALE', 'I_PREFER_NOT_TO_SAY_IT'];
-          break;
-      }
-
-      const interns = await this.prisma.intern.findMany({
-        where: {
-          deletedAt: null,
-          internCourses: {
-            some: { courseId },
-          },
-          internAssignments: {
-            none: {
-              organizationId,
-            },
-          },
-          ...(studiedMajorFilter &&
-            studiedMajorFilter.length > 0 && {
-              majorInProgress: { in: studiedMajorFilter },
-            }),
-          ...(genderValues && {
-            gender: { in: genderValues },
-          }),
-          ...(placeOfResidenceFilter && {
-            peruDepartment: placeOfResidenceFilter,
-          }),
+    const orgCourse = await this.prisma.organizationCourse.findUnique({
+      where: {
+        organizationId_courseId: {
+          organizationId,
+          courseId,
         },
-        include: {
-          internCourses: true,
-          internAssignments: true,
-        },
-      });
+      },
+    });
 
-      return interns.map((i) => Intern.fromPrisma(i));
-    } catch {
-      throw new InternalServerErrorException(
-        'An error occurred while filtering interns for the organization.',
+    if (!orgCourse) {
+      throw new NotFoundException(
+        'OrganizationCourse not found for this organization and course.',
       );
     }
+
+    const { studiedMajorFilter, genderFilter, placeOfResidenceFilter } =
+      orgCourse;
+
+    let genderValues: Gender[] | undefined;
+    switch (genderFilter) {
+      case 'MALE_ONLY':
+        genderValues = ['MALE'];
+        break;
+      case 'FEMALE_ONLY':
+        genderValues = ['FEMALE'];
+        break;
+      case 'BOTH':
+        genderValues = ['MALE', 'FEMALE', 'I_PREFER_NOT_TO_SAY_IT'];
+        break;
+    }
+
+    const interns = await this.prisma.intern.findMany({
+      where: {
+        deletedAt: null,
+        internCourses: {
+          some: { courseId },
+        },
+        internAssignments: {
+          none: {
+            organizationId,
+            courseId,
+          },
+        },
+        ...(studiedMajorFilter &&
+          studiedMajorFilter.length > 0 && {
+            majorInProgress: { in: studiedMajorFilter },
+          }),
+        ...(genderValues && {
+          gender: { in: genderValues },
+        }),
+        ...(placeOfResidenceFilter && {
+          peruDepartment: placeOfResidenceFilter,
+        }),
+      },
+      include: {
+        internCourses: true,
+        internAssignments: true,
+      },
+    });
+
+    return interns.map((i) => Intern.fromPrisma(i));
   }
 
   async findOne(internId: string): Promise<Intern> {
