@@ -114,28 +114,35 @@ export class OrganizationService {
     }
   }
 
-  async findAllByCourse(courseId: string): Promise<Organization[]> {
-    try {
-      const organizations = await this.prisma.organization.findMany({
-        where: {
-          organizationCourses: {
-            some: { courseId },
-          },
+  async findAllByCourse(
+    courseId: string,
+  ): Promise<{ organization: Organization; filter: OrganizationFilter }[]> {
+    const filters = await this.prisma.organizationCourse.findMany({
+      where: {
+        courseId,
+        organization: {
           deletedAt: null,
         },
-        include: {
-          organizationCourses: true,
-          mentorAssignments: true,
-          internAssignments: true,
+      },
+      include: {
+        organization: {
+          include: {
+            organizationCourses: true,
+            mentorAssignments: true,
+            internAssignments: true,
+          },
         },
-      });
+        course: true,
+      },
+    });
 
-      return organizations.map((o) => Organization.fromPrisma(o));
-    } catch {
-      throw new InternalServerErrorException(
-        'An error occurred while retrieving organizations from the course.',
-      );
-    }
+    return filters.map((filter) => ({
+      organization: Organization.fromPrisma({
+        ...filter.organization,
+        organizationCourses: [filter],
+      }),
+      filter: OrganizationFilter.fromPrisma(filter),
+    }));
   }
 
   async findOne(organizationId: string): Promise<Organization> {

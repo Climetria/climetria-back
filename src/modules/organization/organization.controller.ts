@@ -70,12 +70,18 @@ export class OrganizationController {
   }
 
   @Get('courses/:courseId/organizations')
-  async findAllByCourse(
-    @Param('courseId') courseId: string,
-  ): Promise<OrganizationResponseDto[]> {
-    const organizations =
-      await this.organizationService.findAllByCourse(courseId);
-    return organizations.map((o) => OrganizationResponseDto.fromEntity(o));
+  async findAllByCourse(@Param('courseId') courseId: string): Promise<
+    {
+      organization: OrganizationResponseDto;
+      filter: OrganizationFilterResponseDto;
+    }[]
+  > {
+    const results = await this.organizationService.findAllByCourse(courseId);
+
+    return results.map(({ organization, filter }) => ({
+      organization: OrganizationResponseDto.fromEntity(organization),
+      filter: OrganizationFilterResponseDto.fromEntity(filter),
+    }));
   }
 
   @Get('courses/:courseId/organizations/:organizationId')
