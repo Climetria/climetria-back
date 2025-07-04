@@ -1,5 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { Attendance } from '@prisma/client';
 import { PartialType } from '@nestjs/mapped-types';
 
@@ -87,6 +95,18 @@ export class UpdateGradeBaseDto {
   @IsOptional()
   @IsString()
   recommendation?: string;
+
+  @IsBoolean()
+  @Type(() => Boolean)
+  finalReportCheck?: boolean;
+
+  @IsBoolean()
+  @Type(() => Boolean)
+  talkCheck?: boolean;
+
+  @IsBoolean()
+  @Type(() => Boolean)
+  recommendationCheck?: boolean;
 }
 
 export class UpdateGradeDto extends PartialType(UpdateGradeBaseDto) {}

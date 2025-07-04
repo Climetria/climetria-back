@@ -64,6 +64,18 @@ export class GradeResponseDto {
   recommendation?: string;
 
   @Expose()
+  finalReportCheck: boolean;
+
+  @Expose()
+  talkCheck: boolean;
+
+  @Expose()
+  recommendationCheck: boolean;
+
+  @Expose()
+  totalNote: number;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDate, IsOptional, IsString } from 'class-validator';
 export class CreateCourseDto {
   @IsString()
   name: string;
@@ -8,7 +8,11 @@ export class CreateCourseDto {
   @IsString()
   description?: string;
 
-  @IsInt()
-  @Type(() => Number)
-  year: number;
+  @IsDate()
+  @Type(() => Date)
+  startDate: Date;
+
+  @IsDate()
+  @Type(() => Date)
+  endDate: Date;
 }

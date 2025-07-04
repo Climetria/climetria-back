@@ -26,7 +26,8 @@ model Course {
   id                  String          @id @default(cuid())
   name                String
   description         String?
-  year                Int
+  startDate           DateTime        @db.Date
+  endDate             DateTime        @db.Date
   mentorCourses       MentorCourse[]
   organizationCourses OrganizationCourse[]
   internCourses       InternCourse[] 
@@ -193,12 +194,15 @@ model Grade {
   redaction              Int?
   performance            Int?
   recommendation         String?
+  finalReportCheck       Boolean      @default(false)
+  talkCheck              Boolean      @default(false)
+  recommendationCheck    Boolean      @default(false)
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
 
   intern                 Intern       @relation(fields: [internId], references: [id])
   course                 Course       @relation(fields: [courseId], references: [id])
-  mentor                 Mentor?       @relation(fields: [mentorId], references: [id])
+  mentor                 Mentor?      @relation(fields: [mentorId], references: [id])
   
   @@unique([internId, courseId])
 }

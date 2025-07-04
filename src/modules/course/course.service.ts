@@ -9,21 +9,12 @@ export class CourseService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCourseDto): Promise<Course> {
-    const course = await this.prisma.course.create({
-      data: dto,
-      include: {
-        mentorCourses: true,
-        organizationCourses: true,
-        internCourses: true,
-        grades: true,
-      },
-    });
-
+    const course = await this.prisma.course.create({ data: dto });
     return Course.fromPrisma(course);
   }
 
   async findAll(): Promise<Course[]> {
-    const data = await this.prisma.course.findMany({
+    const courses = await this.prisma.course.findMany({
       where: { deletedAt: null },
       include: {
         mentorCourses: true,
@@ -32,7 +23,7 @@ export class CourseService {
         grades: true,
       },
     });
-    return data.map((c) => Course.fromPrisma(c));
+    return courses.map((c) => Course.fromPrisma(c));
   }
 
   async findOne(courseId: string): Promise<Course> {
@@ -50,7 +41,9 @@ export class CourseService {
     });
 
     if (!course) {
-      throw new NotFoundException('Course not found');
+      throw new NotFoundException(
+        `Course with ID '${courseId}' not found or already deleted`,
+      );
     }
 
     return Course.fromPrisma(course);
@@ -62,7 +55,9 @@ export class CourseService {
     });
 
     if (!existingCourse) {
-      throw new NotFoundException('Course not found');
+      throw new NotFoundException(
+        `Course with ID '${courseId}' not found or already deleted`,
+      );
     }
 
     await this.prisma.course.update({

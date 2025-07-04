@@ -12,7 +12,83 @@ import { Prisma } from '@prisma/client';
 export class GradeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findForIntern(courseId: string, internId: string): Promise<Grade> {
+  async findAll(): Promise<Grade[]> {
+    const grades = await this.prisma.grade.findMany({
+      include: {
+        course: true,
+        intern: true,
+        mentor: true,
+      },
+    });
+    return grades.map((g) => Grade.fromPrisma(g));
+  }
+
+  async findAllForCourse(courseId: string): Promise<Grade[]> {
+    const course = await this.prisma.course.findFirst({
+      where: {
+        id: courseId,
+        deletedAt: null,
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException(
+        `Course with ID '${courseId}' not found or already deleted`,
+      );
+    }
+
+    const grades = await this.prisma.grade.findMany({
+      where: {
+        courseId,
+        intern: {
+          deletedAt: null,
+        },
+      },
+      include: {
+        course: true,
+        intern: true,
+        mentor: true,
+      },
+    });
+
+    return grades.map((g) => Grade.fromPrisma(g));
+  }
+
+  async findAllForIntern(internId: string): Promise<Grade[]> {
+    const intern = await this.prisma.intern.findFirst({
+      where: {
+        id: internId,
+        deletedAt: null,
+      },
+    });
+
+    if (!intern) {
+      throw new NotFoundException(
+        `Intern with ID '${internId}' not found or already deleted`,
+      );
+    }
+
+    const grades = await this.prisma.grade.findMany({
+      where: {
+        internId,
+        course: {
+          deletedAt: null,
+        },
+      },
+      include: {
+        course: true,
+        intern: true,
+        mentor: true,
+      },
+    });
+
+    return grades.map((g) => Grade.fromPrisma(g));
+  }
+
+  async findForCourseAndIntern(
+    courseId: string,
+    internId: string,
+  ): Promise<Grade> {
     const internCourse = await this.prisma.internCourse.findUnique({
       where: {
         internId_courseId: {

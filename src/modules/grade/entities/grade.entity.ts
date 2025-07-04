@@ -11,6 +11,9 @@ export class Grade {
     public readonly id: string,
     public internId: string,
     public courseId: string,
+    public finalReportCheck: boolean,
+    public talkCheck: boolean,
+    public recommendationCheck: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     public mentorId?: string,
@@ -32,6 +35,20 @@ export class Grade {
     public recommendation?: string,
   ) {}
 
+  get totalNote(): number {
+    return (
+      (this.initialCommitment ?? 0) +
+      (this.assertiveCommunication ?? 0) +
+      (this.punctuality ?? 0) +
+      (this.classParticipation ?? 0) +
+      (this.proactivity ?? 0) +
+      (this.communicationSkills ?? 0) +
+      (this.punctualityOfDelivery ?? 0) +
+      (this.redaction ?? 0) +
+      (this.performance ?? 0)
+    );
+  }
+
   static fromPrisma(
     data: GradeModel & {
       intern: Intern;
@@ -43,6 +60,9 @@ export class Grade {
       data.id,
       data.intern.id,
       data.course.id,
+      data.finalReportCheck,
+      data.talkCheck,
+      data.recommendationCheck,
       data.createdAt,
       data.updatedAt,
       data.mentor?.id,

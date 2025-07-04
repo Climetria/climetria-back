@@ -32,11 +32,52 @@ export class InternController {
     return interns.map((i) => InternResponseDto.fromEntity(i));
   }
 
+  @Get('courses/:courseId/interns')
+  async findAllByCourse(
+    @Param('courseId') courseId: string,
+  ): Promise<InternResponseDto[]> {
+    const interns = await this.internService.findAllByCourse(courseId);
+    return interns.map((i) => InternResponseDto.fromEntity(i));
+  }
+
+  @Get('courses/:courseId/organizations/:organizationId/interns')
+  async findAllByCourseAndOrganization(
+    @Param('courseId') courseId: string,
+    @Param('organizationId') organizationId: string,
+  ): Promise<InternResponseDto[]> {
+    const interns = await this.internService.findAllByCourseAndOrganization(
+      courseId,
+      organizationId,
+    );
+    return interns.map((i) => InternResponseDto.fromEntity(i));
+  }
+
+  @Get('courses/:courseId/interns/organizations/:organizationId')
+  async findMatchingForOrganization(
+    @Param('courseId') courseId: string,
+    @Param('organizationId') organizationId: string,
+  ): Promise<InternResponseDto[]> {
+    const interns = await this.internService.findMatchingForOrganization(
+      courseId,
+      organizationId,
+    );
+    return interns.map((i) => InternResponseDto.fromEntity(i));
+  }
+
   @Get('interns/:internId')
   async findOne(
     @Param('internId') internId: string,
   ): Promise<InternResponseDto> {
     const intern = await this.internService.findOne(internId);
+    return InternResponseDto.fromEntity(intern);
+  }
+
+  @Get('courses/:courseId/interns/:internId')
+  async findOneByCourse(
+    @Param('courseId') courseId: string,
+    @Param('internId') internId: string,
+  ): Promise<InternResponseDto> {
+    const intern = await this.internService.findOneByCourse(courseId, internId);
     return InternResponseDto.fromEntity(intern);
   }
 
@@ -68,23 +109,6 @@ export class InternController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async softDelete(@Param('internId') internId: string): Promise<void> {
     await this.internService.softDelete(internId);
-  }
-
-  @Get('courses/:courseId/interns')
-  async findAllByCourse(
-    @Param('courseId') courseId: string,
-  ): Promise<InternResponseDto[]> {
-    const interns = await this.internService.findAllByCourse(courseId);
-    return interns.map((i) => InternResponseDto.fromEntity(i));
-  }
-
-  @Get('courses/:courseId/interns/:internId')
-  async findOneByCourse(
-    @Param('courseId') courseId: string,
-    @Param('internId') internId: string,
-  ): Promise<InternResponseDto> {
-    const intern = await this.internService.findOneByCourse(courseId, internId);
-    return InternResponseDto.fromEntity(intern);
   }
 
   @Post('courses/:courseId/interns')
@@ -121,18 +145,6 @@ export class InternController {
     await this.internService.softDelete(internId);
   }
 
-  @Get('courses/:courseId/organizations/:organizationId/interns')
-  async findAllByCourseAndOrganization(
-    @Param('courseId') courseId: string,
-    @Param('organizationId') organizationId: string,
-  ): Promise<InternResponseDto[]> {
-    const interns = await this.internService.findAllByCourseAndOrganization(
-      courseId,
-      organizationId,
-    );
-    return interns.map((i) => InternResponseDto.fromEntity(i));
-  }
-
   @Patch('courses/:courseId/organizations/:organizationId/interns/:internId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async addOrganizationAssignmentFromCourse(
@@ -159,17 +171,5 @@ export class InternController {
       organizationId,
       internId,
     );
-  }
-
-  @Get('courses/:courseId/interns/organizations/:organizationId')
-  async findMatchingForOrganization(
-    @Param('courseId') courseId: string,
-    @Param('organizationId') organizationId: string,
-  ): Promise<InternResponseDto[]> {
-    const interns = await this.internService.findMatchingForOrganization(
-      courseId,
-      organizationId,
-    );
-    return interns.map((i) => InternResponseDto.fromEntity(i));
   }
 }

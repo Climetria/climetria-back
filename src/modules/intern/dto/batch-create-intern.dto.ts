@@ -49,6 +49,7 @@ export class BatchCreateInternDto {
   @IsEnum(Major)
   majorInProgress: Major;
 
+  @IsOptional()
   @IsString()
   otherMajor?: string;
 

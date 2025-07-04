@@ -348,7 +348,7 @@ export class InternService {
     try {
       const data = await this.prisma.intern.findMany({
         where: { deletedAt: null },
-        include: { internCourses: true, internAssignments: true },
+        include: { internCourses: true, internAssignments: true, grades: true },
       });
 
       return data.map((i) => Intern.fromPrisma(i));
@@ -368,7 +368,7 @@ export class InternService {
           },
           deletedAt: null,
         },
-        include: { internCourses: true, internAssignments: true },
+        include: { internCourses: true, internAssignments: true, grades: true },
       });
 
       return interns.map((i) => Intern.fromPrisma(i));
@@ -391,7 +391,7 @@ export class InternService {
           },
           deletedAt: null,
         },
-        include: { internCourses: true, internAssignments: true },
+        include: { internCourses: true, internAssignments: true, grades: true },
       });
 
       return interns.map((i) => Intern.fromPrisma(i));
