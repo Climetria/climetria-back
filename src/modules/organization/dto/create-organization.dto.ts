@@ -57,6 +57,9 @@ export class CreateOrganizationFilterDto {
   @IsOptional()
   placeOfResidenceFilter: PeruDepartment;
 
+  @IsOptional()
+  extraRequirements: string;
+
   @IsArray()
   @IsEnum(Major, { each: true })
   studiedMajorFilter: Major[];

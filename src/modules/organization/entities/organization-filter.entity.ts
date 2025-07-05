@@ -16,6 +16,7 @@ export class OrganizationFilter {
     public placeOfResidenceFilter: PeruDepartment,
     public studiedMajorFilter: Major[],
     public genderFilter: GenderSelection,
+    public extraRequirements: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}
@@ -34,6 +35,7 @@ export class OrganizationFilter {
       data.placeOfResidenceFilter,
       data.studiedMajorFilter,
       data.genderFilter,
+      data.extraRequirements ?? '',
       data.createdAt,
       data.updatedAt,
     );

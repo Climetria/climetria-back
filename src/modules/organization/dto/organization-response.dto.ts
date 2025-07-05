@@ -97,6 +97,9 @@ export class OrganizationFilterResponseDto {
   genderFilter: GenderSelection;
 
   @Expose()
+  extraRequirements: string;
+
+  @Expose()
   createdAt: Date;
 
   @Expose()
