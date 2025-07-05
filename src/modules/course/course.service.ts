@@ -1,14 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { Course } from './entities/course.entity';
 import { UpdateCourseDto } from './dto/update-course.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CourseService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateCourseDto): Promise<Course> {
+    const existing = await this.prisma.course.findFirst({
+      where: {
+        name: dto.name,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        deletedAt: null,
+      },
+    });
+
+    if (existing) {
+      throw new ConflictException(
+        'A course with the same name and dates already exists.',
+      );
+    }
+    
     const course = await this.prisma.course.create({ data: dto });
     return Course.fromPrisma(course);
   }
@@ -50,45 +70,40 @@ export class CourseService {
   }
 
   async update(courseId: string, dto: UpdateCourseDto): Promise<Course> {
-    const existingCourse = await this.prisma.course.findFirst({
-      where: { id: courseId, deletedAt: null },
-    });
+    const updatedCourse = await this.prisma.course
+      .update({
+        where: { id: courseId },
+        data: dto,
+        include: {
+          mentorCourses: true,
+          organizationCourses: true,
+          internCourses: true,
+          grades: true,
+        },
+      })
+      .catch((error: Prisma.PrismaClientKnownRequestError) => {
+        if (error.code === 'P2025') {
+          throw new NotFoundException(
+            `Course with ID '${courseId}' not found.`,
+          );
+        }
+        throw error;
+      });
 
-    if (!existingCourse) {
-      throw new NotFoundException(
-        `Course with ID '${courseId}' not found or already deleted`,
-      );
-    }
-
-    await this.prisma.course.update({
-      where: { id: courseId },
-      data: dto,
-    });
-
-    const updatedCourse = await this.prisma.course.findUnique({
-      where: { id: courseId },
-      include: {
-        mentorCourses: true,
-        organizationCourses: true,
-        internCourses: true,
-        grades: true,
-      },
-    });
-
-    return Course.fromPrisma(updatedCourse!);
+    return Course.fromPrisma(updatedCourse);
   }
 
   async softDelete(courseId: string): Promise<void> {
-    const existingCourse = await this.prisma.course.findFirst({
+    const course = await this.prisma.course.findFirst({
       where: {
         id: courseId,
         deletedAt: null,
       },
     });
 
-    if (!existingCourse) {
+    if (!course) {
       throw new NotFoundException(
-        `Course with ID '${courseId}' not found or already deleted`,
+        `Course with ID '${courseId}' not found or already deleted.`,
       );
     }
 

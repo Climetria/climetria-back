@@ -164,6 +164,25 @@ export class OrganizationService {
     return Organization.fromPrisma(organization);
   }
 
+  async findOneByRuc(ruc: string): Promise<Organization> {
+    const organization = await this.prisma.organization.findUnique({
+      where: { ruc },
+      include: {
+        organizationCourses: true,
+        mentorAssignments: true,
+        internAssignments: true,
+      },
+    });
+
+    if (!organization || organization.deletedAt) {
+      throw new NotFoundException(
+        'The organization with the provided RUC does not exist or has been deleted.',
+      );
+    }
+
+    return Organization.fromPrisma(organization);
+  }
+
   async findOneByCourse(
     courseId: string,
     organizationId: string,

@@ -41,6 +41,14 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(organization);
   }
 
+  @Get('organizations/:ruc')
+  async findOneByRuc(
+    @Param('ruc') ruc: string,
+  ): Promise<OrganizationResponseDto> {
+    const organization = await this.organizationService.findOneByRuc(ruc);
+    return OrganizationResponseDto.fromEntity(organization);
+  }
+
   @Post('organizations')
   async create(
     @Body() dto: CreateOrganizationDto,
