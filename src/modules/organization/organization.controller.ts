@@ -41,7 +41,7 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(organization);
   }
 
-  @Get('organizations/:ruc')
+  @Get('organizations/ruc/:ruc')
   async findOneByRuc(
     @Param('ruc') ruc: string,
   ): Promise<OrganizationResponseDto> {
