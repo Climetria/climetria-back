@@ -57,6 +57,53 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(intern);
   }
 
+  @Post('courses/:courseId/organizations')
+  async createInCourseWithFilter(
+    @Param('courseId') courseId: string,
+    @Body()
+    body: {
+      organization: CreateOrganizationDto;
+      filter: CreateOrganizationFilterDto;
+    },
+  ): Promise<{
+    organization: OrganizationResponseDto;
+    filter: OrganizationFilterResponseDto;
+  }> {
+    const { organization, filter } = body;
+
+    const result = await this.organizationService.createInCourseWithFilter(
+      courseId,
+      organization,
+      filter,
+    );
+
+    return {
+      organization: OrganizationResponseDto.fromEntity(result.organization),
+      filter: OrganizationFilterResponseDto.fromEntity(result.filter),
+    };
+  }
+
+  @Post('courses/:courseId/organizations/:organizationId/assign')
+  async assignToCourseWithFilter(
+    @Param('courseId') courseId: string,
+    @Param('organizationId') organizationId: string,
+    @Body() dto: CreateOrganizationFilterDto,
+  ): Promise<{
+    organization: OrganizationResponseDto;
+    filter: OrganizationFilterResponseDto;
+  }> {
+    const result = await this.organizationService.assignToCourseWithFilter(
+      courseId,
+      organizationId,
+      dto,
+    );
+
+    return {
+      organization: OrganizationResponseDto.fromEntity(result.organization),
+      filter: OrganizationFilterResponseDto.fromEntity(result.filter),
+    };
+  }
+
   @Patch('organizations/:organizationId')
   async update(
     @Param('organizationId') organizationId: string,
@@ -102,32 +149,6 @@ export class OrganizationController {
       organizationId,
     );
     return OrganizationResponseDto.fromEntity(organization);
-  }
-
-  @Post('courses/:courseId/organizations')
-  async createInCourseWithFilter(
-    @Param('courseId') courseId: string,
-    @Body()
-    body: {
-      organization: CreateOrganizationDto;
-      filter: CreateOrganizationFilterDto;
-    },
-  ): Promise<{
-    organization: OrganizationResponseDto;
-    filter: OrganizationFilterResponseDto;
-  }> {
-    const { organization, filter } = body;
-
-    const result = await this.organizationService.createInCourseWithFilter(
-      courseId,
-      organization,
-      filter,
-    );
-
-    return {
-      organization: OrganizationResponseDto.fromEntity(result.organization),
-      filter: OrganizationFilterResponseDto.fromEntity(result.filter),
-    };
   }
 
   @Patch('courses/:courseId/organizations/:organizationId')

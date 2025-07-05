@@ -95,6 +95,85 @@ export class OrganizationService {
     }
   }
 
+  async assignToCourseWithFilter(
+    courseId: string,
+    organizationId: string,
+    filterDto: CreateOrganizationFilterDto,
+  ): Promise<{ organization: Organization; filter: OrganizationFilter }> {
+    try {
+      const organization = await this.prisma.organization.findUnique({
+        where: { id: organizationId },
+        include: { organizationCourses: true },
+      });
+
+      if (!organization || organization.deletedAt) {
+        throw new NotFoundException(
+          'The organization does not exist or has been deleted.',
+        );
+      }
+
+      const course = await this.prisma.course.findUnique({
+        where: { id: courseId },
+      });
+
+      if (!course || course.deletedAt) {
+        throw new NotFoundException(
+          'The course does not exist or has been deleted.',
+        );
+      }
+
+      const existing = await this.prisma.organizationCourse.findUnique({
+        where: {
+          organizationId_courseId: {
+            organizationId,
+            courseId,
+          },
+        },
+      });
+
+      if (existing) {
+        throw new ConflictException(
+          'This organization is already linked to the course.',
+        );
+      }
+
+      const filter = await this.prisma.organizationCourse.create({
+        data: {
+          ...filterDto,
+          organizationId,
+          courseId,
+        },
+        include: {
+          organization: true,
+          course: true,
+        },
+      });
+
+      const updatedOrganization = {
+        ...organization,
+        organizationCourses: [...organization.organizationCourses, filter],
+      };
+
+      return {
+        organization: Organization.fromPrisma(updatedOrganization),
+        filter: OrganizationFilter.fromPrisma(filter),
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'This organization-course link already exists.',
+        );
+      }
+
+      throw new InternalServerErrorException(
+        'An error occurred while assigning the organization to the course.',
+      );
+    }
+  }
+
   async findAll(): Promise<Organization[]> {
     try {
       const data = await this.prisma.organization.findMany({
