@@ -35,9 +35,9 @@ export class OrganizationController {
 
   @Get('organizations/:organizationId')
   async findOne(
-    @Param('internId') internId: string,
+    @Param('organizationId') organizationId: string,
   ): Promise<OrganizationResponseDto> {
-    const organization = await this.organizationService.findOne(internId);
+    const organization = await this.organizationService.findOne(organizationId);
     return OrganizationResponseDto.fromEntity(organization);
   }
 
