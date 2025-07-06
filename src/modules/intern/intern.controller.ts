@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Request,
 } from '@nestjs/common';
 import { InternService } from './intern.service';
 import { CreateInternDto } from './dto/create-intern.dto';
@@ -20,6 +21,7 @@ import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CsvUploadInternResponseDto } from './dto/csv-upload-intern-response.dto';
 import { Express } from 'express';
+import { IsUserAdmin, IsUserMentor } from '../auth/auth.decorator';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -35,7 +37,11 @@ export class InternController {
   @Get('courses/:courseId/interns')
   async findAllByCourse(
     @Param('courseId') courseId: string,
+    @IsUserAdmin() isAdmin: boolean,
+    @IsUserMentor() isMentor: boolean,
   ): Promise<InternResponseDto[]> {
+    console.log(isAdmin);
+    console.log(isMentor);
     const interns = await this.internService.findAllByCourse(courseId);
     return interns.map((i) => InternResponseDto.fromEntity(i));
   }
