@@ -113,7 +113,7 @@ export class MentorService {
     try {
       const data = await this.prisma.mentor.findMany({
         where: { deletedAt: null },
-        include: { mentorCourses: true, mentorAssignments: true },
+        include: { mentorCourses: true, mentorAssignments: true, grades: true },
       });
 
       return data.map((m) => Mentor.fromPrisma(m));
@@ -156,7 +156,7 @@ export class MentorService {
           },
           deletedAt: null,
         },
-        include: { mentorCourses: true, mentorAssignments: true },
+        include: { mentorCourses: true, mentorAssignments: true, grades: true },
       });
 
       return mentors.map((m) => Mentor.fromPrisma(m));
@@ -173,6 +173,7 @@ export class MentorService {
       include: {
         mentorCourses: true,
         mentorAssignments: true,
+        grades: true,
       },
     });
 
@@ -197,6 +198,7 @@ export class MentorService {
       include: {
         mentorCourses: true,
         mentorAssignments: true,
+        grades: true,
       },
     });
 
@@ -215,6 +217,7 @@ export class MentorService {
       include: {
         mentorCourses: true,
         mentorAssignments: true,
+        grades: true,
       },
     });
 
@@ -253,7 +256,7 @@ export class MentorService {
   ): Promise<void> {
     const mentor = await this.prisma.mentor.findUnique({
       where: { id: mentorId },
-      include: { mentorCourses: true, mentorAssignments: true },
+      include: { mentorCourses: true, mentorAssignments: true, grades: true },
     });
 
     if (!mentor) {

@@ -18,6 +18,7 @@ export class GradeService {
         course: true,
         intern: true,
         mentor: true,
+        organization: true,
       },
     });
     return grades.map((g) => Grade.fromPrisma(g));
@@ -48,6 +49,7 @@ export class GradeService {
         course: true,
         intern: true,
         mentor: true,
+        organization: true,
       },
     });
 
@@ -79,6 +81,7 @@ export class GradeService {
         course: true,
         intern: true,
         mentor: true,
+        organization: true,
       },
     });
 
@@ -113,6 +116,7 @@ export class GradeService {
         course: true,
         intern: true,
         mentor: true,
+        organization: true,
       },
     });
 
@@ -143,6 +147,7 @@ export class GradeService {
           course: true,
           intern: true,
           mentor: true,
+          organization: true,
         },
       });
 

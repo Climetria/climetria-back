@@ -23,7 +23,7 @@ export class Mentor {
     public peruDepartment?: PeruDepartment,
     public courseIds?: string[],
     public organizationIds?: string[],
-    public grades?: string[],
+    public gradeIds?: string[],
     public deletedAt?: Date,
   ) {}
 

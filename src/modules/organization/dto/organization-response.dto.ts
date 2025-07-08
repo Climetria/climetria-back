@@ -59,6 +59,9 @@ export class OrganizationResponseDto {
   internStatus: string;
 
   @Expose()
+  gradeIds?: string[];
+
+  @Expose()
   createdAt: Date;
 
   @Expose()

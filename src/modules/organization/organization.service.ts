@@ -182,6 +182,7 @@ export class OrganizationService {
           organizationCourses: true,
           mentorAssignments: true,
           internAssignments: true,
+          grades: true,
         },
       });
 
@@ -209,6 +210,7 @@ export class OrganizationService {
             organizationCourses: true,
             mentorAssignments: true,
             internAssignments: true,
+            grades: true,
           },
         },
         course: true,
@@ -231,6 +233,7 @@ export class OrganizationService {
         organizationCourses: true,
         mentorAssignments: true,
         internAssignments: true,
+        grades: true,
       },
     });
 
@@ -250,6 +253,7 @@ export class OrganizationService {
         organizationCourses: true,
         mentorAssignments: true,
         internAssignments: true,
+        grades: true,
       },
     });
 
@@ -278,6 +282,7 @@ export class OrganizationService {
         organizationCourses: true,
         mentorAssignments: true,
         internAssignments: true,
+        grades: true,
       },
     });
 
@@ -300,6 +305,7 @@ export class OrganizationService {
         organizationCourses: true,
         mentorAssignments: true,
         internAssignments: true,
+        grades: true,
       },
     });
 
@@ -315,6 +321,7 @@ export class OrganizationService {
           organizationCourses: true,
           mentorAssignments: true,
           internAssignments: true,
+          grades: true,
         },
       });
 

@@ -4,6 +4,7 @@ import {
   Intern,
   Course,
   Mentor,
+  Organization,
 } from '@prisma/client';
 
 export class Grade {
@@ -17,6 +18,7 @@ export class Grade {
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
     public mentorId?: string,
+    public organizationId?: string,
     public s1?: Attendance,
     public s2?: Attendance,
     public s3?: Attendance,
@@ -37,16 +39,32 @@ export class Grade {
 
   get totalNote(): number {
     return (
-      (this.initialCommitment ?? 0) +
-      (this.assertiveCommunication ?? 0) +
       (this.punctuality ?? 0) +
       (this.classParticipation ?? 0) +
       (this.proactivity ?? 0) +
       (this.communicationSkills ?? 0) +
       (this.punctualityOfDelivery ?? 0) +
-      (this.redaction ?? 0) +
-      (this.performance ?? 0)
+      (this.redaction ?? 0)
     );
+  }
+
+  get internshipCertificate(): boolean {
+    return this.finalReportCheck && this.talkCheck;
+  }
+
+  get courseCertificate(): boolean {
+    const sValues = [this.s1, this.s2, this.s3, this.s4, this.s5, this.s6];
+    const countA = sValues.filter((s) => s === 'A').length;
+
+    const hasMinimumScores =
+      (this.punctuality ?? 0) >= 1 &&
+      (this.classParticipation ?? 0) >= 1 &&
+      (this.proactivity ?? 0) >= 1 &&
+      (this.communicationSkills ?? 0) >= 1 &&
+      (this.punctualityOfDelivery ?? 0) >= 1 &&
+      (this.redaction ?? 0) >= 1;
+
+    return countA >= 4 && hasMinimumScores;
   }
 
   static fromPrisma(
@@ -54,6 +72,7 @@ export class Grade {
       intern: Intern;
       course: Course;
       mentor?: Mentor | null;
+      organization?: Organization | null;
     },
   ): Grade {
     return new Grade(
@@ -66,6 +85,7 @@ export class Grade {
       data.createdAt,
       data.updatedAt,
       data.mentor?.id,
+      data.organization?.id,
       data.s1 ?? undefined,
       data.s2 ?? undefined,
       data.s3 ?? undefined,

@@ -16,6 +16,9 @@ export class GradeResponseDto {
   mentorId?: string;
 
   @Expose()
+  organizationId?: string;
+
+  @Expose()
   s1?: Attendance;
 
   @Expose()
@@ -74,6 +77,12 @@ export class GradeResponseDto {
 
   @Expose()
   totalNote: number;
+
+  @Expose()
+  internshipCertificate: boolean;
+
+  @Expose()
+  courseCertificate: boolean;
 
   @Expose()
   createdAt: Date;

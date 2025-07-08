@@ -1,4 +1,5 @@
 import {
+  Grade,
   InternAssignment,
   MentorAssignment,
   OrganizationCourse,
@@ -24,6 +25,7 @@ export class Organization {
     public courseIds?: string[],
     public mentorIds?: string[],
     public internIds?: string[],
+    public gradeIds?: string[],
     public deletedAt?: Date,
   ) {}
 
@@ -50,6 +52,7 @@ export class Organization {
       organizationCourses?: OrganizationCourse[];
       mentorAssignments?: MentorAssignment[];
       internAssignments?: InternAssignment[];
+      grades?: Grade[];
     },
   ): Organization {
     return new Organization(
@@ -68,6 +71,7 @@ export class Organization {
       data.organizationCourses?.map((oc) => oc.courseId),
       data.mentorAssignments?.map((ma) => ma.mentorId),
       data.internAssignments?.map((ia) => ia.internId),
+      data.grades?.map((g) => g.id),
       data.deletedAt ?? undefined,
     );
   }

@@ -33,6 +33,21 @@ export class OrganizationController {
     return organizations.map((o) => OrganizationResponseDto.fromEntity(o));
   }
 
+  @Get('courses/:courseId/organizations')
+  async findAllByCourse(@Param('courseId') courseId: string): Promise<
+    {
+      organization: OrganizationResponseDto;
+      filter: OrganizationFilterResponseDto;
+    }[]
+  > {
+    const results = await this.organizationService.findAllByCourse(courseId);
+
+    return results.map(({ organization, filter }) => ({
+      organization: OrganizationResponseDto.fromEntity(organization),
+      filter: OrganizationFilterResponseDto.fromEntity(filter),
+    }));
+  }
+
   @Get('organizations/:organizationId')
   async findOne(
     @Param('organizationId') organizationId: string,
@@ -46,6 +61,18 @@ export class OrganizationController {
     @Param('ruc') ruc: string,
   ): Promise<OrganizationResponseDto> {
     const organization = await this.organizationService.findOneByRuc(ruc);
+    return OrganizationResponseDto.fromEntity(organization);
+  }
+
+  @Get('courses/:courseId/organizations/:organizationId')
+  async findOneByCourse(
+    @Param('courseId') courseId: string,
+    @Param('organizationId') organizationId: string,
+  ): Promise<OrganizationResponseDto> {
+    const organization = await this.organizationService.findOneByCourse(
+      courseId,
+      organizationId,
+    );
     return OrganizationResponseDto.fromEntity(organization);
   }
 
@@ -116,41 +143,6 @@ export class OrganizationController {
     return OrganizationResponseDto.fromEntity(organization);
   }
 
-  @Delete('organizations/:organizationId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async softDelete(
-    @Param('organizationId') organizationId: string,
-  ): Promise<void> {
-    await this.organizationService.softDelete(organizationId);
-  }
-
-  @Get('courses/:courseId/organizations')
-  async findAllByCourse(@Param('courseId') courseId: string): Promise<
-    {
-      organization: OrganizationResponseDto;
-      filter: OrganizationFilterResponseDto;
-    }[]
-  > {
-    const results = await this.organizationService.findAllByCourse(courseId);
-
-    return results.map(({ organization, filter }) => ({
-      organization: OrganizationResponseDto.fromEntity(organization),
-      filter: OrganizationFilterResponseDto.fromEntity(filter),
-    }));
-  }
-
-  @Get('courses/:courseId/organizations/:organizationId')
-  async findOneByCourse(
-    @Param('courseId') courseId: string,
-    @Param('organizationId') organizationId: string,
-  ): Promise<OrganizationResponseDto> {
-    const organization = await this.organizationService.findOneByCourse(
-      courseId,
-      organizationId,
-    );
-    return OrganizationResponseDto.fromEntity(organization);
-  }
-
   @Patch('courses/:courseId/organizations/:organizationId')
   async updateInCourse(
     @Param('organizationId') organizationId: string,
@@ -161,6 +153,14 @@ export class OrganizationController {
       dto,
     );
     return OrganizationResponseDto.fromEntity(organization);
+  }
+
+  @Delete('organizations/:organizationId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async softDelete(
+    @Param('organizationId') organizationId: string,
+  ): Promise<void> {
+    await this.organizationService.softDelete(organizationId);
   }
 
   @Delete('courses/:courseId/organizations/:organizationId')

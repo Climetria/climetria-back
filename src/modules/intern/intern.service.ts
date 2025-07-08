@@ -13,10 +13,7 @@ import {
   CsvUploadInternResponseDto,
   InvalidCsvRow,
 } from './dto/csv-upload-intern-response.dto';
-import {
-  parseCsvContent,
-  ParsedRowResult,
-} from './utils/intern-csv-parser.utils';
+import { parseCsvContent } from './utils/intern-csv-parser.utils';
 import { Gender, Prisma } from '@prisma/client';
 import { BatchCreateInternDto } from './dto/batch-create-intern.dto';
 import { InternResponseDto } from './dto/intern-response.dto';
@@ -151,7 +148,7 @@ export class InternService {
     validInterns: BatchCreateInternDto[];
     invalidRows: InvalidCsvRow[];
   }> {
-    let parsedRows: ParsedRowResult[] = parseCsvContent(csvContent);
+    let parsedRows = parseCsvContent(csvContent);
 
     const existingInterns = await this.prisma.intern.findMany({
       select: { email: true, document: true },
@@ -170,15 +167,13 @@ export class InternService {
     const invalidRows: InvalidCsvRow[] = parsedRows
       .filter((r) => r.errors.length > 0)
       .map((r) => ({
-        rowNumber: parsedRows.indexOf(r) + 2,
+        rowNumber: r.rowNumber,
         errors: r.errors,
         rawData: r.originalRow,
       }));
 
-    const createInternsData = validRows.map((r) => r.row);
-
     return {
-      validInterns: createInternsData,
+      validInterns: validRows.map((r) => r.row),
       invalidRows,
     };
   }
@@ -188,17 +183,12 @@ export class InternService {
   ): Promise<CsvUploadInternResponseDto> {
     const baseResult = await this.batchParseAndValidateCsv(csvContent);
 
-    const responseInterns: InternResponseDto[] = [];
+    const validInterns: InternResponseDto[] = [];
 
-    for (const internData of baseResult.validInterns) {
+    for (const dto of baseResult.validInterns) {
       try {
-        const exists = await this.prisma.intern.findFirst({
-          where: {
-            OR: [
-              { email: internData.email },
-              { document: internData.document },
-            ],
-          },
+        const intern = await this.prisma.intern.create({
+          data: dto,
           include: {
             internCourses: true,
             internAssignments: true,
@@ -206,33 +196,16 @@ export class InternService {
           },
         });
 
-        if (exists) {
-          const domain = Intern.fromPrisma(exists);
-          const dto = InternResponseDto.fromEntity(domain);
-          responseInterns.push(dto);
-          continue;
-        }
-
-        const created = await this.prisma.intern.create({
-          data: internData,
-          include: {
-            internCourses: true,
-            internAssignments: true,
-            grades: true,
-          },
-        });
-
-        const domainIntern = Intern.fromPrisma(created);
-        const dto = InternResponseDto.fromEntity(domainIntern);
-        responseInterns.push(dto);
-      } catch (error: unknown) {
+        validInterns.push(
+          InternResponseDto.fromEntity(Intern.fromPrisma(intern)),
+        );
+      } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === 'P2002'
         ) {
-          throw new ConflictException(
-            'The document or email is already registered.',
-          );
+          // Este caso no debería ocurrir porque ya se validaron duplicados
+          continue;
         }
 
         throw new InternalServerErrorException(
@@ -242,7 +215,7 @@ export class InternService {
     }
 
     return {
-      validInterns: responseInterns,
+      validInterns,
       invalidRows: baseResult.invalidRows,
     };
   }
@@ -253,83 +226,37 @@ export class InternService {
   ): Promise<CsvUploadInternResponseDto> {
     const baseResult = await this.batchParseAndValidateCsv(csvContent);
 
-    type InternWithRelations = Prisma.InternGetPayload<{
-      include: {
-        internCourses: true;
-        internAssignments: true;
-        grades: true;
-      };
-    }>;
+    const validInterns: InternResponseDto[] = [];
 
-    const responseInterns: InternResponseDto[] = [];
-
-    for (const internData of baseResult.validInterns) {
+    for (const dto of baseResult.validInterns) {
       try {
-        const existing: InternWithRelations | null =
-          await this.prisma.intern.findFirst({
-            where: {
-              OR: [
-                { email: internData.email },
-                { document: internData.document },
-              ],
+        const intern = await this.prisma.intern.create({
+          data: {
+            ...dto,
+            internCourses: {
+              create: [{ courseId }],
             },
-            include: {
-              internCourses: true,
-              internAssignments: true,
-              grades: true,
+            grades: {
+              create: [{ courseId }],
             },
-          });
+          },
+          include: {
+            internCourses: true,
+            internAssignments: true,
+            grades: true,
+          },
+        });
 
-        let intern: InternWithRelations;
-
-        if (!existing) {
-          intern = await this.prisma.intern.create({
-            data: {
-              ...internData,
-              internCourses: {
-                create: [{ courseId }],
-              },
-            },
-            include: {
-              internCourses: true,
-              internAssignments: true,
-              grades: true,
-            },
-          });
-        } else {
-          intern = existing;
-
-          const alreadyRelated = intern.internCourses.some(
-            (relation) => relation.courseId === courseId,
-          );
-
-          if (!alreadyRelated) {
-            await this.prisma.internCourse.create({
-              data: { internId: intern.id, courseId },
-            });
-
-            intern = (await this.prisma.intern.findUnique({
-              where: { id: intern.id },
-              include: {
-                internCourses: true,
-                internAssignments: true,
-                grades: true,
-              },
-            })) as InternWithRelations;
-          }
-        }
-
-        const domain = Intern.fromPrisma(intern);
-        const dto = InternResponseDto.fromEntity(domain);
-        responseInterns.push(dto);
+        validInterns.push(
+          InternResponseDto.fromEntity(Intern.fromPrisma(intern)),
+        );
       } catch (error) {
         if (
           error instanceof Prisma.PrismaClientKnownRequestError &&
           error.code === 'P2002'
         ) {
-          throw new ConflictException(
-            'The document or email is already registered.',
-          );
+          // De nuevo, ya se validó duplicidad antes
+          continue;
         }
 
         throw new InternalServerErrorException(
@@ -339,7 +266,7 @@ export class InternService {
     }
 
     return {
-      validInterns: responseInterns,
+      validInterns,
       invalidRows: baseResult.invalidRows,
     };
   }

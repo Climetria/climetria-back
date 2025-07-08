@@ -21,22 +21,31 @@ export async function validateParsedRows(
       errors.push(...extractedErrors);
     }
 
-    if (
-      seenEmails.has(rowResult.row.email) ||
-      existingEmails.has(rowResult.row.email)
-    ) {
-      errors.push('Email duplicado');
-    } else {
-      seenEmails.add(rowResult.row.email);
+    const email = rowResult.row.email?.toLowerCase()?.trim();
+    const document = rowResult.row.document?.trim();
+
+    if (!email) {
+      errors.push('Email is required');
     }
 
-    if (
-      seenDocuments.has(rowResult.row.document) ||
-      existingDocuments.has(rowResult.row.document)
-    ) {
-      errors.push('Documento duplicado');
-    } else {
-      seenDocuments.add(rowResult.row.document);
+    if (!document) {
+      errors.push('Document is required');
+    }
+
+    if (email) {
+      if (seenEmails.has(email) || existingEmails.has(email)) {
+        errors.push('Duplicate email');
+      } else {
+        seenEmails.add(email);
+      }
+    }
+
+    if (document) {
+      if (seenDocuments.has(document) || existingDocuments.has(document)) {
+        errors.push('Duplicate document');
+      } else {
+        seenDocuments.add(document);
+      }
     }
 
     rowResult.errors = errors;
