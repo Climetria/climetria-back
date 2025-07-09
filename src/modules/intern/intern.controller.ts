@@ -11,6 +11,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  BadRequestException,
   Request,
 } from '@nestjs/common';
 import { InternService } from './intern.service';
@@ -19,8 +20,8 @@ import { InternResponseDto } from './dto/intern-response.dto';
 import { UpdateInternDto } from './dto/update-intern.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CsvUploadInternResponseDto } from './dto/csv-upload-intern-response.dto';
 import { Express } from 'express';
+import { parseInternCsv } from './utils/intern-csv-parser.utils';
 import { IsUserAdmin, IsUserMentor } from '../auth/auth.decorator';
 
 @Controller()
@@ -93,13 +94,39 @@ export class InternController {
     return InternResponseDto.fromEntity(intern);
   }
 
-  @Post('interns/batch')
+  @Post('courses/:courseId/interns')
+  async createInCourse(
+    @Param('courseId') courseId: string,
+    @Body() dto: CreateInternDto,
+  ): Promise<InternResponseDto> {
+    const intern = await this.internService.createInCourse(courseId, dto);
+    return InternResponseDto.fromEntity(intern);
+  }
+
+  @Post('interns/batch-upload')
   @UseInterceptors(FileInterceptor('file'))
-  async batchCreateFromCsv(
+  async batchCreateFromCsv(@UploadedFile() file: Express.Multer.File) {
+    if (!file || !file.mimetype.includes('csv')) {
+      throw new BadRequestException('El archivo debe ser un CSV válido.');
+    }
+
+    const rows = parseInternCsv(file.buffer);
+    return this.internService.batchCreateFromCsv(rows);
+  }
+
+  @Post('courses/:courseId/interns/batch-upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.OK)
+  async batchCreateFromCsvInCourse(
+    @Param('courseId') courseId: string,
     @UploadedFile() file: Express.Multer.File,
-  ): Promise<CsvUploadInternResponseDto> {
-    const csvContent = file.buffer.toString('utf-8');
-    return this.internService.batchCreateFromCsv(csvContent);
+  ) {
+    if (!file || !file.mimetype.includes('csv')) {
+      throw new BadRequestException('El archivo debe ser un CSV válido.');
+    }
+
+    const rows = parseInternCsv(file.buffer);
+    return this.internService.batchCreateFromCsvInCourse(courseId, rows);
   }
 
   @Patch('interns/:internId')
@@ -111,31 +138,6 @@ export class InternController {
     return InternResponseDto.fromEntity(intern);
   }
 
-  @Delete('interns/:internId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async softDelete(@Param('internId') internId: string): Promise<void> {
-    await this.internService.softDelete(internId);
-  }
-
-  @Post('courses/:courseId/interns')
-  async createInCourse(
-    @Param('courseId') courseId: string,
-    @Body() dto: CreateInternDto,
-  ): Promise<InternResponseDto> {
-    const intern = await this.internService.createInCourse(courseId, dto);
-    return InternResponseDto.fromEntity(intern);
-  }
-
-  @Post('courses/:courseId/interns/batch')
-  @UseInterceptors(FileInterceptor('file'))
-  async batchCreateFromCsvInCourse(
-    @Param('courseId') courseId: string,
-    @UploadedFile() file: Express.Multer.File,
-  ): Promise<CsvUploadInternResponseDto> {
-    const csvContent = file.buffer.toString('utf-8');
-    return this.internService.batchCreateFromCsvInCourse(courseId, csvContent);
-  }
-
   @Patch('courses/:courseId/interns/:internId')
   async updateInCourse(
     @Param('internId') internId: string,
@@ -143,12 +145,6 @@ export class InternController {
   ): Promise<InternResponseDto> {
     const intern = await this.internService.update(internId, dto);
     return InternResponseDto.fromEntity(intern);
-  }
-
-  @Delete('courses/:courseId/interns/:internId')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async softDeleteInCourse(@Param('internId') internId: string): Promise<void> {
-    await this.internService.softDelete(internId);
   }
 
   @Patch('courses/:courseId/organizations/:organizationId/interns/:internId')
@@ -177,5 +173,17 @@ export class InternController {
       organizationId,
       internId,
     );
+  }
+
+  @Delete('interns/:internId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async softDelete(@Param('internId') internId: string): Promise<void> {
+    await this.internService.softDelete(internId);
+  }
+
+  @Delete('courses/:courseId/interns/:internId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async softDeleteInCourse(@Param('internId') internId: string): Promise<void> {
+    await this.internService.softDelete(internId);
   }
 }

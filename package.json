@@ -19,7 +19,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prepare": "husky install",
-    "prepare-lambda": "mkdir -p dist-lambda && cp -r dist node_modules package.json dist-lambda/ && cp -r prisma dist-lambda/", 
+    "prepare-lambda": "mkdir -p dist-lambda && cp -r dist node_modules package.json dist-lambda/ && cp -r prisma dist-lambda/",
     "zip-lambda": "cd dist-lambda && zip -r ./lambda-package.zip ."
   },
   "dependencies": {

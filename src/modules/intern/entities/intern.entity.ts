@@ -24,7 +24,7 @@ export class Intern {
     public universityName: string,
     public majorInProgress: Major,
     public graduationYear: number,
-    public referralSource,
+    public referralSource: string,
     public topicsOfInterest: TopicCode[],
     public country: string,
     public readonly createdAt: Date,
