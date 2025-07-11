@@ -172,12 +172,6 @@ export class InternController {
     @Param('internId') internId: string,
   ): Promise<void> {
     await this.internService.unassignFromCourse(courseId, internId);
-  async updateInCourse(
-    @Param('internId') internId: string,
-    @Body() dto: UpdateInternDto,
-  ): Promise<InternResponseDto> {
-    const intern = await this.internService.update(internId, dto);
-    return InternResponseDto.fromEntity(intern);
   }
 
   @Patch('courses/:courseId/organizations/:organizationId/interns/:internId')
