@@ -59,6 +59,15 @@ export class InternController {
     return interns.map((i) => InternResponseDto.fromEntity(i));
   }
 
+  @Get('interns/courses/:courseId')
+  async findAllAvailableForCourse(
+    @Param('courseId') courseId: string,
+  ): Promise<InternResponseDto[]> {
+    const interns =
+      await this.internService.findAllAvailableForCourse(courseId);
+    return interns.map((i) => InternResponseDto.fromEntity(i));
+  }
+
   @Get('courses/:courseId/interns/organizations/:organizationId')
   async findMatchingForOrganization(
     @Param('courseId') courseId: string,
@@ -139,6 +148,30 @@ export class InternController {
   }
 
   @Patch('courses/:courseId/interns/:internId')
+  async updateInCourse(
+    @Param('internId') internId: string,
+    @Body() dto: UpdateInternDto,
+  ): Promise<InternResponseDto> {
+    const intern = await this.internService.update(internId, dto);
+    return InternResponseDto.fromEntity(intern);
+  }
+
+  @Patch('courses/:courseId/interns/:internId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async assignToCourse(
+    @Param('courseId') courseId: string,
+    @Param('internId') internId: string,
+  ): Promise<void> {
+    await this.internService.assignToCourse(courseId, internId);
+  }
+
+  @Delete('courses/:courseId/interns/:internId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unassignFromCourse(
+    @Param('courseId') courseId: string,
+    @Param('internId') internId: string,
+  ): Promise<void> {
+    await this.internService.unassignFromCourse(courseId, internId);
   async updateInCourse(
     @Param('internId') internId: string,
     @Body() dto: UpdateInternDto,

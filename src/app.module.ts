@@ -9,6 +9,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { CourseModule } from './modules/course/course.module';
 import { GradeModule } from './modules/grade/grade.module';
+import { MetricsModule } from './modules/metrics/metrics.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { GradeModule } from './modules/grade/grade.module';
     AuthModule,
     CourseModule,
     GradeModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

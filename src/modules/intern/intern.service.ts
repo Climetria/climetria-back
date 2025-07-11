@@ -367,6 +367,32 @@ export class InternService {
     }
   }
 
+  async findAllAvailableForCourse(courseId: string): Promise<Intern[]> {
+    try {
+      const data = await this.prisma.intern.findMany({
+        where: {
+          deletedAt: null,
+          internCourses: {
+            none: {
+              courseId,
+            },
+          },
+        },
+        include: {
+          internCourses: true,
+          internAssignments: true,
+          grades: true,
+        },
+      });
+
+      return data.map((intern) => Intern.fromPrisma(intern));
+    } catch {
+      throw new InternalServerErrorException(
+        'An error occurred while retrieving interns not in the specified course.',
+      );
+    }
+  }
+
   async findMatchingForOrganization(
     courseId: string,
     organizationId: string,
@@ -515,6 +541,110 @@ export class InternService {
     }
   }
 
+  async assignToCourse(courseId: string, internId: string): Promise<void> {
+    const intern = await this.prisma.intern.findUnique({
+      where: { id: internId },
+    });
+
+    if (!intern) {
+      throw new NotFoundException('Intern not found.');
+    }
+
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found.');
+    }
+
+    const alreadyAssociated = await this.prisma.internCourse.findUnique({
+      where: {
+        internId_courseId: { internId, courseId },
+      },
+    });
+
+    if (alreadyAssociated) {
+      throw new ConflictException('Intern is already assigned to this course.');
+    }
+
+    try {
+      await this.prisma.$transaction([
+        this.prisma.internCourse.create({
+          data: {
+            internId,
+            courseId,
+          },
+        }),
+        this.prisma.grade.create({
+          data: {
+            internId,
+            courseId,
+          },
+        }),
+      ]);
+    } catch {
+      throw new InternalServerErrorException(
+        'An error occurred while assigning the intern to the course.',
+      );
+    }
+  }
+
+  async unassignFromCourse(internId: string, courseId: string): Promise<void> {
+    const intern = await this.prisma.intern.findUnique({
+      where: { id: internId },
+    });
+
+    if (!intern) {
+      throw new NotFoundException('Intern not found.');
+    }
+
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Course not found.');
+    }
+
+    const internCourse = await this.prisma.internCourse.findUnique({
+      where: {
+        internId_courseId: { internId, courseId },
+      },
+    });
+
+    if (!internCourse) {
+      throw new ConflictException(
+        'Intern is not assigned to the specified course.',
+      );
+    }
+
+    try {
+      await this.prisma.$transaction([
+        this.prisma.internAssignment.deleteMany({
+          where: {
+            internId,
+            courseId,
+          },
+        }),
+        this.prisma.grade.delete({
+          where: {
+            internId_courseId: { internId, courseId },
+          },
+        }),
+        this.prisma.internCourse.delete({
+          where: {
+            internId_courseId: { internId, courseId },
+          },
+        }),
+      ]);
+    } catch {
+      throw new InternalServerErrorException(
+        'An error occurred while unassigning the intern from the course.',
+      );
+    }
+  }
+
   async addOrganizationAssignmentFromCourse(
     courseId: string,
     organizationId: string,
@@ -522,11 +652,24 @@ export class InternService {
   ): Promise<void> {
     const intern = await this.prisma.intern.findUnique({
       where: { id: internId },
-      include: { internCourses: true, internAssignments: true, grades: true },
+      include: {
+        internCourses: true,
+        internAssignments: true,
+      },
     });
 
     if (!intern) {
       throw new NotFoundException('Intern not found');
+    }
+
+    const isInternInCourse = intern.internCourses.some(
+      (ic) => ic.courseId === courseId,
+    );
+
+    if (!isInternInCourse) {
+      throw new ConflictException(
+        'Intern is not associated with the specified course.',
+      );
     }
 
     const alreadyAssigned = intern.internAssignments.some(
@@ -541,19 +684,66 @@ export class InternService {
       );
     }
 
-    try {
-      await this.prisma.internAssignment.create({
+    const organizationInCourse =
+      await this.prisma.organizationCourse.findUnique({
+        where: {
+          organizationId_courseId: {
+            organizationId,
+            courseId,
+          },
+        },
+      });
+
+    if (!organizationInCourse) {
+      throw new ConflictException(
+        'The organization is not associated with the specified course.',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.internAssignment.create({
         data: {
           internId,
           organizationId,
           courseId,
         },
       });
-    } catch {
-      throw new InternalServerErrorException(
-        'An error occurred while assigning the intern to the organization.',
-      );
-    }
+
+      const grade = await tx.grade.findUnique({
+        where: {
+          internId_courseId: {
+            internId,
+            courseId,
+          },
+        },
+      });
+
+      if (!grade) {
+        throw new InternalServerErrorException(
+          'Grade not found for the intern in the specified course.',
+        );
+      }
+
+      const mentorAssignment = await tx.mentorAssignment.findFirst({
+        where: {
+          organizationId,
+          courseId,
+        },
+      });
+
+      await tx.grade.update({
+        where: {
+          internId_courseId: {
+            internId,
+            courseId,
+          },
+        },
+        data: {
+          organizationId,
+          mentorId: mentorAssignment?.mentorId,
+        },
+      });
+    });
   }
 
   async removeOrganizationAssignmentFromCourse(
@@ -561,29 +751,61 @@ export class InternService {
     organizationId: string,
     internId: string,
   ): Promise<void> {
-    const assignment = await this.prisma.internAssignment.findFirst({
+    const existingAssignment = await this.prisma.internAssignment.findUnique({
       where: {
-        courseId,
-        organizationId,
-        internId,
+        internId_organizationId_courseId: {
+          internId,
+          organizationId,
+          courseId,
+        },
       },
     });
 
-    if (!assignment) {
+    if (!existingAssignment) {
       throw new NotFoundException(
-        'The intern is not assigned to this organization in this course.',
+        'The intern is not assigned to this organization in the specified course.',
       );
     }
 
-    try {
-      await this.prisma.internAssignment.delete({
-        where: { id: assignment.id },
+    await this.prisma.$transaction(async (tx) => {
+      await tx.internAssignment.delete({
+        where: {
+          internId_organizationId_courseId: {
+            internId,
+            organizationId,
+            courseId,
+          },
+        },
       });
-    } catch {
-      throw new InternalServerErrorException(
-        'An error occurred while removing the assignment.',
-      );
-    }
+
+      const grade = await tx.grade.findUnique({
+        where: {
+          internId_courseId: {
+            internId,
+            courseId,
+          },
+        },
+      });
+
+      if (!grade) {
+        throw new InternalServerErrorException(
+          'Grade not found for the intern in the specified course.',
+        );
+      }
+
+      await tx.grade.update({
+        where: {
+          internId_courseId: {
+            internId,
+            courseId,
+          },
+        },
+        data: {
+          organizationId: null,
+          mentorId: null,
+        },
+      });
+    });
   }
 
   async softDelete(internId: string): Promise<void> {

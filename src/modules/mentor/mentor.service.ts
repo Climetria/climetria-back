@@ -256,11 +256,24 @@ export class MentorService {
   ): Promise<void> {
     const mentor = await this.prisma.mentor.findUnique({
       where: { id: mentorId },
-      include: { mentorCourses: true, mentorAssignments: true, grades: true },
+      include: {
+        mentorCourses: true,
+        mentorAssignments: true,
+      },
     });
 
     if (!mentor) {
       throw new NotFoundException('Mentor not found');
+    }
+
+    const isMentorInCourse = mentor.mentorCourses.some(
+      (mc) => mc.courseId === courseId,
+    );
+
+    if (!isMentorInCourse) {
+      throw new ConflictException(
+        'Mentor is not associated with the specified course.',
+      );
     }
 
     const alreadyAssigned = mentor.mentorAssignments.some(
@@ -275,19 +288,41 @@ export class MentorService {
       );
     }
 
-    try {
-      await this.prisma.mentorAssignment.create({
+    const organizationInCourse =
+      await this.prisma.organizationCourse.findUnique({
+        where: {
+          organizationId_courseId: {
+            organizationId,
+            courseId,
+          },
+        },
+      });
+
+    if (!organizationInCourse) {
+      throw new ConflictException(
+        'The organization is not associated with the specified course.',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.mentorAssignment.create({
         data: {
           mentorId,
           organizationId,
           courseId,
         },
       });
-    } catch {
-      throw new InternalServerErrorException(
-        'An error occurred while assigning the mentor to the organization.',
-      );
-    }
+
+      await tx.grade.updateMany({
+        where: {
+          courseId,
+          organizationId,
+        },
+        data: {
+          mentorId,
+        },
+      });
+    });
   }
 
   async removeOrganizationAssignmentFromCourse(
@@ -310,12 +345,25 @@ export class MentorService {
     }
 
     try {
-      await this.prisma.mentorAssignment.delete({
-        where: { id: assignment.id },
+      await this.prisma.$transaction(async (tx) => {
+        await tx.mentorAssignment.delete({
+          where: { id: assignment.id },
+        });
+
+        await tx.grade.updateMany({
+          where: {
+            courseId,
+            organizationId,
+            mentorId,
+          },
+          data: {
+            mentorId: null,
+          },
+        });
       });
     } catch {
       throw new InternalServerErrorException(
-        'An error occurred while removing the assignment.',
+        'An error occurred while removing the mentor assignment.',
       );
     }
   }
