@@ -1,26 +1,39 @@
-export class BaseCourseMetricDto {
+export class InternOrgStatsDto {
   courseId: string;
   courseName: string;
+  internsWithOrg: number;
+  organizationsWithTeam: number;
 }
 
-export interface CourseCountMetricDto extends BaseCourseMetricDto {
-  value: number;
-}
-
-export interface CourseTopInternDto {
+export class TopInternDto {
   internId: string;
   fullName: string;
   totalNote: number;
-  recommendationCheck: boolean;
-  recommendationComment?: string | null;
+  recommended: boolean;
+  recommendationComment?: string;
 }
 
-export interface CourseTopInternsMetricDto extends BaseCourseMetricDto {
-  topInterns: CourseTopInternDto[];
+export class CourseValueDto {
+  courseId: string;
+  courseName: string;
+  value: number;
 }
 
-export interface CourseDatesMetricDto extends BaseCourseMetricDto {
-  startDate: string;
-  endDate: string;
-  status: 'UPCOMING' | 'IN_PROGRESS' | 'FINISHED';
+export class CourseCalendarDto {
+  courseId: string;
+  courseName: string;
+  startDate: Date;
+  endDate: Date;
+  status: 'PENDING' | 'ONGOING' | 'FINISHED';
+}
+
+export class DashboardSummaryDto {
+  topInterns: TopInternDto[];
+  studentsPerCourse: CourseValueDto[];
+  finalReportsPerCourse: CourseValueDto[];
+  talksPerCourse: CourseValueDto[];
+  fullyEvaluatedPerCourse: CourseValueDto[];
+  certificatesPerCourse: CourseValueDto[];
+  courseCalendar: CourseCalendarDto[];
+  internsAndOrganizations: InternOrgStatsDto[];
 }
