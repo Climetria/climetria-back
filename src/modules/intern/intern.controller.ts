@@ -20,7 +20,6 @@ import { InternResponseDto } from './dto/intern-response.dto';
 import { UpdateInternDto } from './dto/update-intern.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
 import { parseInternCsv } from './utils/intern-csv-parser.utils';
 import { IsUserAdmin, IsUserMentor } from '../auth/auth.decorator';
 

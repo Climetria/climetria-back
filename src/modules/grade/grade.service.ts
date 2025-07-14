@@ -168,7 +168,7 @@ export class GradeService {
     }
   }
 
-  async delete(courseId: string, internId: string): Promise<void> {
+  async reset(courseId: string, internId: string): Promise<void> {
     const existingGrade = await this.prisma.grade.findUnique({
       where: {
         internId_courseId: {
@@ -180,16 +180,37 @@ export class GradeService {
 
     if (!existingGrade) {
       throw new NotFoundException(
-        'Grade not found for this intern in the course',
+        'Grade not found for this intern in the course.',
       );
     }
 
-    await this.prisma.grade.delete({
+    await this.prisma.grade.update({
       where: {
         internId_courseId: {
           internId,
           courseId,
         },
+      },
+      data: {
+        s1: null,
+        s2: null,
+        s3: null,
+        s4: null,
+        s5: null,
+        s6: null,
+        initialCommitment: null,
+        assertiveCommunication: null,
+        punctuality: null,
+        classParticipation: null,
+        proactivity: null,
+        communicationSkills: null,
+        punctualityOfDelivery: null,
+        redaction: null,
+        performance: null,
+        recommendation: null,
+        finalReportCheck: false,
+        talkCheck: false,
+        recommendationCheck: false,
       },
     });
   }

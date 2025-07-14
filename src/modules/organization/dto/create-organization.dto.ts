@@ -54,8 +54,9 @@ export class CreateOrganizationFilterDto {
   @Type(() => Number)
   maximumNumberOfInterns: number;
 
-  @IsEnum(PeruDepartment)
-  placeOfResidenceFilter: PeruDepartment;
+  @IsArray()
+  @IsEnum(PeruDepartment, { each: true })
+  placeOfResidenceFilter: PeruDepartment[];
 
   @IsArray()
   @IsEnum(Major, { each: true })
@@ -66,5 +67,5 @@ export class CreateOrganizationFilterDto {
 
   @IsOptional()
   @IsString()
-  extraRequirements: string;
+  extraRequirements?: string;
 }

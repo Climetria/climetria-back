@@ -69,6 +69,6 @@ export class GradeController {
     @Param('courseId') courseId: string,
     @Param('internId') internId: string,
   ): Promise<void> {
-    await this.gradeService.delete(internId, courseId);
+    await this.gradeService.reset(internId, courseId);
   }
 }

@@ -95,7 +95,7 @@ model OrganizationCourse {
   organizationId          String
   courseId                String
   maximumNumberOfInterns  Int
-  placeOfResidenceFilter  PeruDepartment
+  placeOfResidenceFilter  PeruDepartment[]
   studiedMajorFilter      Major[]
   genderFilter            GenderSelection
   extraRequirements       String?

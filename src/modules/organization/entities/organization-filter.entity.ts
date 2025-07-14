@@ -13,7 +13,7 @@ export class OrganizationFilter {
     public courseId: string,
     public organizationId: string,
     public maximumNumberOfInterns: number,
-    public placeOfResidenceFilter: PeruDepartment,
+    public placeOfResidenceFilter: PeruDepartment[],
     public studiedMajorFilter: Major[],
     public genderFilter: GenderSelection,
     public extraRequirements: string,

@@ -91,7 +91,7 @@ export class OrganizationFilterResponseDto {
   maximumNumberOfInterns: number;
 
   @Expose()
-  placeOfResidenceFilter: PeruDepartment;
+  placeOfResidenceFilter: PeruDepartment[];
 
   @Expose()
   studiedMajorFilter: Major[];

@@ -13,6 +13,10 @@ import { Organization } from './entities/organization.entity';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import { OrganizationFilter } from './entities/organization-filter.entity';
 import { Prisma } from '@prisma/client';
+import {
+  parseAndValidateOrganizationCsv,
+  RawOrganizationCsvRow,
+} from './utils/organization-csv-parser.utils';
 
 @Injectable()
 export class OrganizationService {
@@ -93,6 +97,185 @@ export class OrganizationService {
         'An error occurred while creating the organization with its filter.',
       );
     }
+  }
+
+  async batchCreateFromCsv(rawRows: RawOrganizationCsvRow[]): Promise<{
+    successes: { organization: Organization; status: 'created' }[];
+    failures: { row: number; errors: string[] }[];
+  }> {
+    const successes: { organization: Organization; status: 'created' }[] = [];
+    const failures: { row: number; errors: string[] }[] = [];
+
+    const parsedResults = parseAndValidateOrganizationCsv(rawRows, false);
+
+    for (const result of parsedResults) {
+      const { dto, errors, row } = result;
+
+      if (errors.length > 0 || !dto) {
+        failures.push({ row, errors });
+        continue;
+      }
+
+      try {
+        const created = await this.prisma.organization.create({
+          data: dto.organization,
+        });
+
+        successes.push({
+          organization: Organization.fromPrisma(created),
+          status: 'created',
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          failures.push({
+            row,
+            errors: ['El RUC o email ya está registrado.'],
+          });
+        } else {
+          failures.push({
+            row,
+            errors: ['Error inesperado al crear la organización.'],
+          });
+        }
+      }
+    }
+
+    return { successes, failures };
+  }
+
+  async batchCreateFromCsvInCourse(
+    courseId: string,
+    rawRows: RawOrganizationCsvRow[],
+  ): Promise<{
+    successes: {
+      organization: Organization;
+      filter: OrganizationFilter;
+      status: 'created' | 'associated';
+    }[];
+    failures: { row: number; errors: string[] }[];
+  }> {
+    const successes: {
+      organization: Organization;
+      filter: OrganizationFilter;
+      status: 'created' | 'associated';
+    }[] = [];
+    const failures: { row: number; errors: string[] }[] = [];
+
+    const parsedResults = parseAndValidateOrganizationCsv(rawRows, true);
+
+    for (const result of parsedResults) {
+      const { dto, errors, row } = result;
+
+      if (errors.length > 0 || !dto) {
+        failures.push({ row, errors });
+        continue;
+      }
+
+      const { organization, filter } = dto;
+
+      try {
+        const existing = await this.prisma.organization.findFirst({
+          where: {
+            OR: [{ ruc: organization.ruc }, { email: organization.email }],
+          },
+          include: {
+            organizationCourses: true,
+          },
+        });
+
+        if (existing) {
+          const alreadyInCourse = existing.organizationCourses.some(
+            (c) => c.courseId === courseId,
+          );
+
+          if (alreadyInCourse) {
+            failures.push({
+              row,
+              errors: [
+                'La organización ya está registrada y asociada a este curso.',
+              ],
+            });
+            continue;
+          }
+
+          const courseFilter = await this.prisma.organizationCourse.create({
+            data: {
+              ...filter!,
+              courseId,
+              organizationId: existing.id,
+            },
+            include: { organization: true, course: true },
+          });
+
+          const updated = await this.prisma.organization.findUnique({
+            where: { id: existing.id },
+            include: { organizationCourses: true },
+          });
+
+          if (updated) {
+            successes.push({
+              organization: Organization.fromPrisma(updated),
+              filter: OrganizationFilter.fromPrisma(courseFilter),
+              status: 'associated',
+            });
+          } else {
+            failures.push({
+              row,
+              errors: [
+                'Error inesperado al actualizar la organización existente.',
+              ],
+            });
+          }
+
+          continue;
+        }
+
+        const created = await this.prisma.organization.create({
+          data: {
+            ...organization,
+            organizationCourses: {
+              create: {
+                ...filter!,
+                courseId,
+              },
+            },
+          },
+          include: {
+            organizationCourses: {
+              include: { organization: true, course: true },
+            },
+          },
+        });
+
+        const createdCourse = created.organizationCourses[0];
+
+        successes.push({
+          organization: Organization.fromPrisma(created),
+          filter: OrganizationFilter.fromPrisma(createdCourse),
+          status: 'created',
+        });
+      } catch (error) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          failures.push({
+            row,
+            errors: ['El RUC o email ya está registrado.'],
+          });
+        } else {
+          failures.push({
+            row,
+            errors: ['Error inesperado durante la creación o asociación.'],
+          });
+        }
+      }
+    }
+
+    return { successes, failures };
   }
 
   async assignToCourseWithFilter(

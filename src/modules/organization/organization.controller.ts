@@ -9,6 +9,9 @@ import {
   HttpStatus,
   UseGuards,
   Patch,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import {
@@ -21,6 +24,8 @@ import {
 } from './dto/organization-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { parseOrganizationCsv } from './utils/organization-csv-parser.utils';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -108,6 +113,52 @@ export class OrganizationController {
       organization: OrganizationResponseDto.fromEntity(result.organization),
       filter: OrganizationFilterResponseDto.fromEntity(result.filter),
     };
+  }
+
+  @Post('organizations/batch-upload')
+  @UseInterceptors(FileInterceptor('file'))
+  async batchCreateFromCsv(@UploadedFile() file: Express.Multer.File): Promise<{
+    successes: {
+      organization: OrganizationResponseDto;
+      status: 'created';
+      filter?: OrganizationFilterResponseDto;
+    }[];
+    failures: {
+      row: number;
+      errors: string[];
+    }[];
+  }> {
+    if (!file || !file.mimetype.includes('csv')) {
+      throw new BadRequestException('El archivo debe ser un CSV válido.');
+    }
+
+    const rows = parseOrganizationCsv(file.buffer);
+    return this.organizationService.batchCreateFromCsv(rows);
+  }
+
+  @Post('courses/:courseId/organizations/batch-upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.OK)
+  async batchCreateFromCsvInCourse(
+    @Param('courseId') courseId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<{
+    successes: {
+      organization: OrganizationResponseDto;
+      filter: OrganizationFilterResponseDto;
+      status: 'created' | 'associated';
+    }[];
+    failures: {
+      row: number;
+      errors: string[];
+    }[];
+  }> {
+    if (!file || !file.mimetype.includes('csv')) {
+      throw new BadRequestException('El archivo debe ser un CSV válido.');
+    }
+
+    const rows = parseOrganizationCsv(file.buffer);
+    return this.organizationService.batchCreateFromCsvInCourse(courseId, rows);
   }
 
   @Post('courses/:courseId/organizations/:organizationId/assign')

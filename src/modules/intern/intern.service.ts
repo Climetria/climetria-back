@@ -441,8 +441,8 @@ export class InternService {
           ? { majorInProgress: { in: studiedMajorFilter } }
           : {}),
         ...(genderValues?.length ? { gender: { in: genderValues } } : {}),
-        ...(placeOfResidenceFilter
-          ? { peruDepartment: placeOfResidenceFilter }
+        ...(placeOfResidenceFilter?.length
+          ? { peruDepartment: { in: placeOfResidenceFilter } }
           : {}),
       },
       include: {
