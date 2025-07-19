@@ -83,8 +83,8 @@ export class MentorController {
     @Body() dto: CreateMentorDto,
   ): Promise<MentorResponseDto> {
     const cognitoUser = await this.authService.createOrGetCognitoUser(
-      'mentor',
       dto.email,
+      'mentor',
     );
     dto.cognitoUser = cognitoUser;
     const mentor = await this.mentorService.createInCourse(courseId, dto);
