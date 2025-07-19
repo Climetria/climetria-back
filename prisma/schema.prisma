@@ -44,6 +44,7 @@ model Mentor {
   documentType        DocumentType   
   document            String        @unique @db.VarChar(15)
   email               String        @unique
+  cognitoUser         String        @default("")
   firstNames          String
   lastNameFather      String
   lastNameMother      String

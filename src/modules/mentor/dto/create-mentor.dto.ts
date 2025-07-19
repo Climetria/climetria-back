@@ -12,6 +12,10 @@ export class CreateMentorDto {
   email: string;
 
   @IsString()
+  @IsOptional()
+  cognitoUser: string;
+
+  @IsString()
   firstNames: string;
 
   @IsString()

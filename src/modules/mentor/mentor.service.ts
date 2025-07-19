@@ -37,7 +37,7 @@ export class MentorService {
           'The document or email is already registered.',
         );
       }
-
+      console.error(error);
       throw new InternalServerErrorException(
         'An error occurred while creating the mentor.',
       );

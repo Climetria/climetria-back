@@ -15,11 +15,15 @@ import { CreateMentorDto } from './dto/create-mentor.dto';
 import { MentorResponseDto } from './dto/mentor-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
 import { UpdateMentorDto } from './dto/update-mentor.dto';
+import { AuthService } from '../auth/auth.service';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
 export class MentorController {
-  constructor(private readonly mentorService: MentorService) {}
+  constructor(
+    private readonly mentorService: MentorService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Get('mentors')
   async findAll(): Promise<MentorResponseDto[]> {
@@ -78,6 +82,11 @@ export class MentorController {
     @Param('courseId') courseId: string,
     @Body() dto: CreateMentorDto,
   ): Promise<MentorResponseDto> {
+    const cognitoUser = await this.authService.createOrGetCognitoUser(
+      'mentor',
+      dto.email,
+    );
+    dto.cognitoUser = cognitoUser;
     const mentor = await this.mentorService.createInCourse(courseId, dto);
     return MentorResponseDto.fromEntity(mentor);
   }
