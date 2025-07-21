@@ -6,7 +6,7 @@ import { CertificateInternshipResponseDto } from './dto/certificateInternship-re
 export class CertificatesController {
   constructor(private readonly certificatesService: CertificatesService) {}
 
-  @Get(':id')
+  @Get('internships/:id')
   async getInternshipCertificate(
     @Param('id') id: string,
   ): Promise<CertificateInternshipResponseDto> {
