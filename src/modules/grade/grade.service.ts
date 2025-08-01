@@ -24,17 +24,19 @@ export class GradeService {
     return grades.map((g) => Grade.fromPrisma(g));
   }
 
-  async findAllByMentor(mentorId: string): Promise<Grade[]> {
-    const mentorExists = await this.prisma.mentor.findUnique({
-      where: { id: mentorId },
+  async findAllByMentor(mentorCognitoUser: string): Promise<Grade[]> {
+    const mentorExists = await this.prisma.mentor.findFirst({
+      where: { cognitoUser: mentorCognitoUser },
     });
 
     if (!mentorExists) {
-      throw new NotFoundException(`Mentor with ID ${mentorId} not found.`);
+      throw new NotFoundException(
+        `Mentor with Cognito User ID ${mentorCognitoUser} not found.`,
+      );
     }
 
     const grades = await this.prisma.grade.findMany({
-      where: { mentorId },
+      where: { mentorId: mentorExists.id },
       include: {
         course: true,
         intern: true,
