@@ -41,6 +41,18 @@ export class OrganizationResponseDto {
   topicsOfInterest: TopicCode[];
 
   @Expose()
+  logoUrl?: string;
+
+  @Expose()
+  signerFullName?: string;
+
+  @Expose()
+  signerTitle?: string;
+
+  @Expose()
+  signerSignatureUrl?: string;
+
+  @Expose()
   courseIds?: string[];
 
   @Expose()
@@ -100,7 +112,7 @@ export class OrganizationFilterResponseDto {
   genderFilter: GenderSelection;
 
   @Expose()
-  extraRequirements: string;
+  extraRequirements?: string;
 
   @Expose()
   createdAt: Date;

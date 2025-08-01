@@ -82,11 +82,11 @@ model Organization {
   organizationSize        OrganizationSize
   sector                  String
   topicsOfInterest        TopicCode[]
-  organizationCourses     OrganizationCourse[]
   logoUrl                 String?
   signerFullName          String?
   signerTitle             String?
   signerSignatureUrl      String?
+  organizationCourses     OrganizationCourse[]
   mentorAssignments       MentorAssignment[]
   internAssignments       InternAssignment[]
   grades                  Grade[]
