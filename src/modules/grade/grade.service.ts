@@ -24,7 +24,29 @@ export class GradeService {
     return grades.map((g) => Grade.fromPrisma(g));
   }
 
-  async findAllForCourse(courseId: string): Promise<Grade[]> {
+  async findAllByMentor(mentorId: string): Promise<Grade[]> {
+    const mentorExists = await this.prisma.mentor.findUnique({
+      where: { id: mentorId },
+    });
+
+    if (!mentorExists) {
+      throw new NotFoundException(`Mentor with ID ${mentorId} not found.`);
+    }
+
+    const grades = await this.prisma.grade.findMany({
+      where: { mentorId },
+      include: {
+        course: true,
+        intern: true,
+        mentor: true,
+        organization: true,
+      },
+    });
+
+    return grades.map((g) => Grade.fromPrisma(g));
+  }
+
+  async findAllByCourse(courseId: string): Promise<Grade[]> {
     const course = await this.prisma.course.findFirst({
       where: {
         id: courseId,
@@ -56,7 +78,7 @@ export class GradeService {
     return grades.map((g) => Grade.fromPrisma(g));
   }
 
-  async findAllForIntern(internId: string): Promise<Grade[]> {
+  async findAllByIntern(internId: string): Promise<Grade[]> {
     const intern = await this.prisma.intern.findFirst({
       where: {
         id: internId,
@@ -88,7 +110,7 @@ export class GradeService {
     return grades.map((g) => Grade.fromPrisma(g));
   }
 
-  async findForCourseAndIntern(
+  async findByCourseAndIntern(
     courseId: string,
     internId: string,
   ): Promise<Grade> {

@@ -11,6 +11,7 @@ import { CourseModule } from './modules/course/course.module';
 import { GradeModule } from './modules/grade/grade.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
+import { S3Module } from './modules/s3/s3.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { CertificatesModule } from './modules/certificates/certificates.module';
     GradeModule,
     MetricsModule,
     CertificatesModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [AppService],

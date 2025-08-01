@@ -10,17 +10,24 @@ import {
   CreateOrganizationFilterDto,
 } from './dto/create-organization.dto';
 import { Organization } from './entities/organization.entity';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
+import {
+  UpdateOrganizationCertificateInfoDto,
+  UpdateOrganizationDto,
+} from './dto/update-organization.dto';
 import { OrganizationFilter } from './entities/organization-filter.entity';
 import { Prisma } from '@prisma/client';
 import {
   parseAndValidateOrganizationCsv,
   RawOrganizationCsvRow,
 } from './utils/organization-csv-parser.utils';
+import { S3Service } from '../s3/s3.service';
 
 @Injectable()
 export class OrganizationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly s3Service: S3Service,
+  ) {}
 
   async create(dto: CreateOrganizationDto): Promise<Organization> {
     try {
@@ -355,6 +362,48 @@ export class OrganizationService {
         'An error occurred while assigning the organization to the course.',
       );
     }
+  }
+
+  async updateCertificateInfo(
+    organizationId: string,
+    dto: UpdateOrganizationCertificateInfoDto,
+    logoFile?: Express.Multer.File,
+    signatureFile?: Express.Multer.File,
+  ) {
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+    });
+
+    if (!organization) {
+      throw new NotFoundException('Organization not found');
+    }
+
+    const updates: Partial<
+      UpdateOrganizationCertificateInfoDto & {
+        logoUrl?: string;
+        signerSignatureUrl?: string;
+      }
+    > = {
+      ...dto,
+    };
+
+    if (logoFile) {
+      updates.logoUrl = await this.s3Service.uploadFile(logoFile, 'logos');
+    }
+
+    if (signatureFile) {
+      updates.signerSignatureUrl = await this.s3Service.uploadFile(
+        signatureFile,
+        'signatures',
+      );
+    }
+
+    const updated = await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: updates,
+    });
+
+    return updated;
   }
 
   async findAll(): Promise<Organization[]> {

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  UploadedFiles,
 } from '@nestjs/common';
 import { OrganizationService } from './organization.service';
 import {
@@ -23,8 +24,14 @@ import {
   OrganizationResponseDto,
 } from './dto/organization-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
-import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  UpdateOrganizationCertificateInfoDto,
+  UpdateOrganizationDto,
+} from './dto/update-organization.dto';
+import {
+  FileFieldsInterceptor,
+  FileInterceptor,
+} from '@nestjs/platform-express';
 import { parseOrganizationCsv } from './utils/organization-csv-parser.utils';
 
 @Controller()
@@ -180,6 +187,33 @@ export class OrganizationController {
       organization: OrganizationResponseDto.fromEntity(result.organization),
       filter: OrganizationFilterResponseDto.fromEntity(result.filter),
     };
+  }
+
+  @Patch('organizations/:organizationId/certificate-info')
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'logo', maxCount: 1 },
+      { name: 'signature', maxCount: 1 },
+    ]),
+  )
+  async updateCertificateInfo(
+    @Param('organizationId') organizationId: string,
+    @Body() dto: UpdateOrganizationCertificateInfoDto,
+    @UploadedFiles()
+    files: {
+      logo?: Express.Multer.File[];
+      signature?: Express.Multer.File[];
+    },
+  ) {
+    const logoFile = files.logo?.[0];
+    const signatureFile = files.signature?.[0];
+
+    return this.organizationService.updateCertificateInfo(
+      organizationId,
+      dto,
+      logoFile,
+      signatureFile,
+    );
   }
 
   @Patch('organizations/:organizationId')

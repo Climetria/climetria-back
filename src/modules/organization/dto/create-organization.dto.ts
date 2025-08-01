@@ -69,3 +69,13 @@ export class CreateOrganizationFilterDto {
   @IsString()
   extraRequirements?: string;
 }
+
+export class UploadOrganizationCertificateInfoDto {
+  @IsOptional()
+  @IsString()
+  signerFullName?: string;
+
+  @IsOptional()
+  @IsString()
+  signerTitle?: string;
+}

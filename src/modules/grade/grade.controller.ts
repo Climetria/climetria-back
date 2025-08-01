@@ -25,11 +25,19 @@ export class GradeController {
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
 
+  @Get('mentor/:mentorId/grades')
+  async findByMentor(
+    @Param('mentorId') mentorId: string,
+  ): Promise<GradeResponseDto[]> {
+    const grades = await this.gradeService.findAllByMentor(mentorId);
+    return grades.map((g) => GradeResponseDto.fromEntity(g));
+  }
+
   @Get('courses/:courseId/grades')
   async findAllForCourse(
     @Param('courseId') courseId: string,
   ): Promise<GradeResponseDto[]> {
-    const grades = await this.gradeService.findAllForCourse(courseId);
+    const grades = await this.gradeService.findAllByCourse(courseId);
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
 
@@ -37,7 +45,7 @@ export class GradeController {
   async findForIntern(
     @Param('internId') internId: string,
   ): Promise<GradeResponseDto[]> {
-    const grades = await this.gradeService.findAllForIntern(internId);
+    const grades = await this.gradeService.findAllByIntern(internId);
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
 
@@ -46,7 +54,7 @@ export class GradeController {
     @Param('courseId') courseId: string,
     @Param('internId') internId: string,
   ): Promise<GradeResponseDto> {
-    const grade = await this.gradeService.findForCourseAndIntern(
+    const grade = await this.gradeService.findByCourseAndIntern(
       courseId,
       internId,
     );
