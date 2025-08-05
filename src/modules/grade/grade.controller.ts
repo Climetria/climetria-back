@@ -71,7 +71,7 @@ export class GradeController {
     return GradeResponseDto.fromEntity(grade);
   }
 
-  @Patch('grades/gradeId')
+  @Patch('grades/:gradeId')
   async updateByGrade(
     @Param('gradeId') gradeId: string,
     @Body() dto: UpdateGradeDto,
