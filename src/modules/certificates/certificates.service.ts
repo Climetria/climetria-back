@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { CertificateInternshipResponseDto } from './dto/certificateInternship-response.dto';
+import { CertificateInternshipResponseDto } from './dto/certificate-response.dto';
 
 @Injectable()
 export class CertificatesService {
@@ -27,10 +27,21 @@ export class CertificatesService {
     const fullName =
       `${grade.intern.firstNames} ${grade.intern.lastNameFather} ${grade.intern.lastNameMother}`.trim();
 
+    const organizationName =
+      grade.organization?.organizationName || 'Not assigned';
+    const logoUrl = grade.organization?.logoUrl || '';
+    const signerFullName = grade.organization?.signerFullName || '';
+    const signerTitle = grade.organization?.signerTitle || '';
+    const signerSignatureUrl = grade.organization?.signerSignatureUrl || '';
+
     return {
       fullName,
       course: grade.course.name,
-      organization: grade.organization?.organizationName || 'Not assigned',
+      organization: organizationName,
+      logoUrl,
+      signerFullName,
+      signerTitle,
+      signerSignatureUrl,
     };
   }
 }

@@ -204,16 +204,18 @@ export class OrganizationController {
       logo?: Express.Multer.File[];
       signature?: Express.Multer.File[];
     },
-  ) {
+  ): Promise<OrganizationResponseDto> {
     const logoFile = files.logo?.[0];
     const signatureFile = files.signature?.[0];
 
-    return this.organizationService.updateCertificateInfo(
+    const organization = await this.organizationService.updateCertificateInfo(
       organizationId,
       dto,
       logoFile,
       signatureFile,
     );
+
+    return OrganizationResponseDto.fromEntity(organization);
   }
 
   @Patch('organizations/:organizationId')

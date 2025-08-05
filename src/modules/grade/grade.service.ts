@@ -192,6 +192,36 @@ export class GradeService {
     }
   }
 
+  async updateByGrade(gradeId: string, dto: UpdateGradeDto): Promise<Grade> {
+    try {
+      const updated = await this.prisma.grade.update({
+        where: {
+          id: gradeId,
+        },
+        data: dto,
+        include: {
+          course: true,
+          intern: true,
+          mentor: true,
+          organization: true,
+        },
+      });
+
+      return Grade.fromPrisma(updated);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException('Grade not found');
+      }
+
+      throw new InternalServerErrorException(
+        'An error occurred while updating the grade.',
+      );
+    }
+  }
+
   async reset(courseId: string, internId: string): Promise<void> {
     const existingGrade = await this.prisma.grade.findUnique({
       where: {

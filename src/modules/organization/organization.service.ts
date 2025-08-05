@@ -369,13 +369,19 @@ export class OrganizationService {
     dto: UpdateOrganizationCertificateInfoDto,
     logoFile?: Express.Multer.File,
     signatureFile?: Express.Multer.File,
-  ) {
-    const organization = await this.prisma.organization.findUnique({
+  ): Promise<Organization> {
+    const existingOrganization = await this.prisma.organization.findUnique({
       where: { id: organizationId },
+      include: {
+        organizationCourses: true,
+        mentorAssignments: true,
+        internAssignments: true,
+        grades: true,
+      },
     });
 
-    if (!organization) {
-      throw new NotFoundException('Organization not found');
+    if (!existingOrganization || existingOrganization.deletedAt) {
+      throw new NotFoundException('The organization does not exist.');
     }
 
     const updates: Partial<
@@ -383,9 +389,7 @@ export class OrganizationService {
         logoUrl?: string;
         signerSignatureUrl?: string;
       }
-    > = {
-      ...dto,
-    };
+    > = { ...dto };
 
     if (logoFile) {
       updates.logoUrl = await this.s3Service.uploadFile(logoFile, 'logos');
@@ -401,9 +405,15 @@ export class OrganizationService {
     const updated = await this.prisma.organization.update({
       where: { id: organizationId },
       data: updates,
+      include: {
+        organizationCourses: true,
+        mentorAssignments: true,
+        internAssignments: true,
+        grades: true,
+      },
     });
 
-    return updated;
+    return Organization.fromPrisma(updated);
   }
 
   async findAll(): Promise<Organization[]> {

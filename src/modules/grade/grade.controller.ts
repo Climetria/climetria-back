@@ -71,6 +71,15 @@ export class GradeController {
     return GradeResponseDto.fromEntity(grade);
   }
 
+  @Patch('grades/gradeId')
+  async updateByGrade(
+    @Param('gradeId') gradeId: string,
+    @Body() dto: UpdateGradeDto,
+  ): Promise<GradeResponseDto> {
+    const grade = await this.gradeService.updateByGrade(gradeId, dto);
+    return GradeResponseDto.fromEntity(grade);
+  }
+
   @Delete('courses/:courseId/interns/:internId/grade')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(
