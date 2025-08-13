@@ -3,8 +3,10 @@ import { MetricsService } from './metrics.service';
 import {
   CourseCalendarDto,
   CourseValueDto,
+  DashboardSummaryByCourseDto,
   DashboardSummaryDto,
   InternOrgStatsDto,
+  TopInternByCourseDto,
   TopInternDto,
 } from './dto/metric-response.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
@@ -20,8 +22,15 @@ export class MetricsController {
   }
 
   @Get('courses/:courseId/top-interns')
-  topInterns(@Param('courseId') courseId: string): Promise<TopInternDto[]> {
-    return this.metricsService.topInterns(courseId);
+  topInterns(): Promise<TopInternDto[]> {
+    return this.metricsService.topInterns();
+  }
+
+  @Get('courses/:courseId/top-interns')
+  topInternsByCourse(
+    @Param('courseId') courseId: string,
+  ): Promise<TopInternByCourseDto[]> {
+    return this.metricsService.topInternsByCourse(courseId);
   }
 
   @Get('students-per-course')
@@ -54,10 +63,15 @@ export class MetricsController {
     return this.metricsService.courseDates();
   }
 
+  @Get('summary')
+  dashboardSummary(): Promise<DashboardSummaryDto> {
+    return this.metricsService.dashboardSummary();
+  }
+
   @Get('summary/:courseId')
-  dashboardSummary(
+  dashboardSummaryByCourse(
     @Param('courseId') courseId: string,
-  ): Promise<DashboardSummaryDto> {
-    return this.metricsService.dashboardSummary(courseId);
+  ): Promise<DashboardSummaryByCourseDto> {
+    return this.metricsService.dashboardSummaryByCourse(courseId);
   }
 }

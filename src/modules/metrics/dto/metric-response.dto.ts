@@ -8,6 +8,16 @@ export class InternOrgStatsDto {
 export class TopInternDto {
   internId: string;
   fullName: string;
+  courseId: string;
+  courseName: string;
+  totalNote: number;
+  recommended: boolean;
+  recommendationComment?: string;
+}
+
+export class TopInternByCourseDto {
+  internId: string;
+  fullName: string;
   totalNote: number;
   recommended: boolean;
   recommendationComment?: string;
@@ -29,6 +39,17 @@ export class CourseCalendarDto {
 
 export class DashboardSummaryDto {
   topInterns: TopInternDto[];
+  studentsPerCourse: CourseValueDto[];
+  finalReportsPerCourse: CourseValueDto[];
+  talksPerCourse: CourseValueDto[];
+  fullyEvaluatedPerCourse: CourseValueDto[];
+  certificatesPerCourse: CourseValueDto[];
+  courseCalendar: CourseCalendarDto[];
+  internsAndOrganizations: InternOrgStatsDto[];
+}
+
+export class DashboardSummaryByCourseDto {
+  topInternsByCourse: TopInternByCourseDto[];
   studentsPerCourse: CourseValueDto[];
   finalReportsPerCourse: CourseValueDto[];
   talksPerCourse: CourseValueDto[];

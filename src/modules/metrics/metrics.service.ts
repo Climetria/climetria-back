@@ -3,8 +3,10 @@ import { PrismaService } from 'prisma/prisma.service';
 import {
   CourseCalendarDto,
   CourseValueDto,
+  DashboardSummaryByCourseDto,
   DashboardSummaryDto,
   InternOrgStatsDto,
+  TopInternByCourseDto,
   TopInternDto,
 } from './dto/metric-response.dto';
 import { Grade } from '../grade/entities/grade.entity';
@@ -56,7 +58,36 @@ export class MetricsService {
     }));
   }
 
-  async topInterns(courseId: string): Promise<TopInternDto[]> {
+  async topInterns(): Promise<TopInternDto[]> {
+    const grades = await this.prisma.grade.findMany({
+      include: {
+        intern: true,
+        course: true,
+        mentor: true,
+        organization: true,
+      },
+    });
+
+    const enriched = grades.map((g) => Grade.fromPrisma(g));
+    enriched.sort((a, b) => b.totalNote - a.totalNote);
+
+    return enriched.slice(0, 3).map((grade) => {
+      const originalGrade = grades.find((g) => g.id === grade.id)!;
+      const intern = originalGrade.intern;
+
+      return {
+        internId: grade.internId,
+        fullName: `${intern.firstNames} ${intern.lastNameFather}`,
+        courseId: grade.courseId,
+        courseName: originalGrade.course.name,
+        totalNote: grade.totalNote,
+        recommended: grade.recommendationCheck,
+        recommendationComment: grade.recommendation ?? undefined,
+      };
+    });
+  }
+
+  async topInternsByCourse(courseId: string): Promise<TopInternByCourseDto[]> {
     const grades = await this.prisma.grade.findMany({
       where: { courseId },
       include: {
@@ -216,7 +247,7 @@ export class MetricsService {
     }));
   }
 
-  async dashboardSummary(courseId: string): Promise<DashboardSummaryDto> {
+  async dashboardSummary(): Promise<DashboardSummaryDto> {
     const [
       topInterns,
       studentsPerCourse,
@@ -227,7 +258,7 @@ export class MetricsService {
       courseCalendar,
       internsAndOrganizations,
     ] = await Promise.all([
-      this.topInterns(courseId),
+      this.topInterns(),
       this.studentsPerCourse(),
       this.finalReportsPerCourse(),
       this.talksPerCourse(),
@@ -239,6 +270,41 @@ export class MetricsService {
 
     return {
       topInterns,
+      studentsPerCourse,
+      finalReportsPerCourse,
+      talksPerCourse,
+      fullyEvaluatedPerCourse,
+      certificatesPerCourse,
+      courseCalendar,
+      internsAndOrganizations,
+    };
+  }
+
+  async dashboardSummaryByCourse(
+    courseId: string,
+  ): Promise<DashboardSummaryByCourseDto> {
+    const [
+      topInternsByCourse,
+      studentsPerCourse,
+      finalReportsPerCourse,
+      talksPerCourse,
+      fullyEvaluatedPerCourse,
+      certificatesPerCourse,
+      courseCalendar,
+      internsAndOrganizations,
+    ] = await Promise.all([
+      this.topInternsByCourse(courseId),
+      this.studentsPerCourse(),
+      this.finalReportsPerCourse(),
+      this.talksPerCourse(),
+      this.fullyEvaluatedPerCourse(),
+      this.certificatesPerCourse(),
+      this.courseDates(),
+      this.internsAndOrgsPerCourse(),
+    ]);
+
+    return {
+      topInternsByCourse,
       studentsPerCourse,
       finalReportsPerCourse,
       talksPerCourse,
