@@ -17,26 +17,27 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String
+  Role      Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Course {
-  id                  String          @id @default(cuid())
-  name                String
-  description         String?
-  startDate           DateTime        @db.Date
-  endDate             DateTime        @db.Date
-  mentorCourses       MentorCourse[]
-  organizationCourses OrganizationCourse[]
-  internCourses       InternCourse[] 
-  mentorAssignments   MentorAssignment[]
-  internAssignments   InternAssignment[]
-  grades              Grade[]
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  deletedAt           DateTime? 
+  id                      String          @id @default(cuid())
+  name                    String
+  description             String?
+  startDate               DateTime        @db.Date
+  endDate                 DateTime        @db.Date
+  mentorCourses           MentorCourse[]
+  organizationCourses     OrganizationCourse[]
+  internCourses           InternCourse[] 
+  mentorAssignments       MentorAssignment[]
+  internAssignments       InternAssignment[]
+  orgCertificateCourses   OrganizationCertificateCourse[]
+  grades                  Grade[]
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+  deletedAt               DateTime? 
 }
 
 model Mentor {
@@ -179,6 +180,31 @@ model InternAssignment {
   @@unique([internId, organizationId, courseId]) 
 }
 
+model OrganizationCertificate {
+  id                      String          @id @default(cuid())
+  name                    String          @unique
+  logoUrl                 String?
+  signerFullName          String?
+  signerTitle             String?
+  signerSignatureUrl      String?
+  orgCertificateCourses   OrganizationCertificateCourse[]
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  deletedAt               DateTime?
+}
+
+model OrganizationCertificateCourse {
+  id                String                    @id @default(cuid())
+  orgCertificateId  String
+  courseId          String
+  createdAt         DateTime                  @default(now())
+
+  orgCertificate    OrganizationCertificate   @relation(fields: [orgCertificateId], references: [id])
+  course            Course                    @relation(fields: [courseId], references: [id])
+
+  @@unique([orgCertificateId, courseId]) 
+}
+
 model Grade {
   id                     String       @id @default(cuid())
   internId               String
@@ -213,6 +239,11 @@ model Grade {
   organization           Organization?  @relation(fields: [organizationId], references: [id])
   
   @@unique([internId, courseId])
+}
+
+enum Role {
+  ADMIN
+  MENTOR
 }
 
 enum DocumentType {

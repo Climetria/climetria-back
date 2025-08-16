@@ -43,7 +43,7 @@ export class OrganizationService {
       }
 
       throw new InternalServerErrorException(
-        'An error occurred while creating the intern.',
+        'An error occurred while creating the organization.',
       );
     }
   }
