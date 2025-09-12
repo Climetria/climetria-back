@@ -32,7 +32,6 @@ import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
-import { parseOrganizationCsv } from './utils/organization-csv-parser.utils';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -139,8 +138,7 @@ export class OrganizationController {
       throw new BadRequestException('El archivo debe ser un CSV válido.');
     }
 
-    const rows = parseOrganizationCsv(file.buffer);
-    return this.organizationService.batchCreateFromCsv(rows);
+    return this.organizationService.batchCreateFromCsv(file.buffer);
   }
 
   @Post('courses/:courseId/organizations/batch-upload')
@@ -164,8 +162,10 @@ export class OrganizationController {
       throw new BadRequestException('El archivo debe ser un CSV válido.');
     }
 
-    const rows = parseOrganizationCsv(file.buffer);
-    return this.organizationService.batchCreateFromCsvInCourse(courseId, rows);
+    return this.organizationService.batchCreateFromCsvInCourse(
+      courseId,
+      file.buffer,
+    );
   }
 
   @Post('courses/:courseId/organizations/:organizationId/assign')
