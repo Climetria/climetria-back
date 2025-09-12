@@ -18,6 +18,7 @@ import { OrganizationFilter } from './entities/organization-filter.entity';
 import { Prisma } from '@prisma/client';
 import {
   parseAndValidateOrganizationCsv,
+  parseOrganizationCsv,
   RawOrganizationCsvRow,
 } from './utils/organization-csv-parser.utils';
 import { S3Service } from '../s3/s3.service';
@@ -106,13 +107,14 @@ export class OrganizationService {
     }
   }
 
-  async batchCreateFromCsv(rawRows: RawOrganizationCsvRow[]): Promise<{
+  async batchCreateFromCsv(buffer: Buffer): Promise<{
     successes: { organization: Organization; status: 'created' }[];
     failures: { row: number; errors: string[] }[];
   }> {
     const successes: { organization: Organization; status: 'created' }[] = [];
     const failures: { row: number; errors: string[] }[] = [];
 
+    const rawRows = parseOrganizationCsv(buffer);
     const parsedResults = parseAndValidateOrganizationCsv(rawRows, false);
 
     for (const result of parsedResults) {
@@ -126,6 +128,12 @@ export class OrganizationService {
       try {
         const created = await this.prisma.organization.create({
           data: dto.organization,
+          include: {
+            organizationCourses: true,
+            mentorAssignments: true,
+            internAssignments: true,
+            grades: true,
+          },
         });
 
         successes.push({
@@ -155,7 +163,7 @@ export class OrganizationService {
 
   async batchCreateFromCsvInCourse(
     courseId: string,
-    rawRows: RawOrganizationCsvRow[],
+    buffer: Buffer,
   ): Promise<{
     successes: {
       organization: Organization;
@@ -171,6 +179,7 @@ export class OrganizationService {
     }[] = [];
     const failures: { row: number; errors: string[] }[] = [];
 
+    const rawRows = parseOrganizationCsv(buffer);
     const parsedResults = parseAndValidateOrganizationCsv(rawRows, true);
 
     for (const result of parsedResults) {
@@ -187,6 +196,7 @@ export class OrganizationService {
         const existing = await this.prisma.organization.findFirst({
           where: {
             OR: [{ ruc: organization.ruc }, { email: organization.email }],
+            deletedAt: null,
           },
           include: {
             organizationCourses: true,
@@ -219,7 +229,12 @@ export class OrganizationService {
 
           const updated = await this.prisma.organization.findUnique({
             where: { id: existing.id },
-            include: { organizationCourses: true },
+            include: {
+              organizationCourses: true,
+              mentorAssignments: true,
+              internAssignments: true,
+              grades: true,
+            },
           });
 
           if (updated) {
@@ -254,6 +269,9 @@ export class OrganizationService {
             organizationCourses: {
               include: { organization: true, course: true },
             },
+            mentorAssignments: true,
+            internAssignments: true,
+            grades: true,
           },
         });
 
