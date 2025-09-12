@@ -82,7 +82,7 @@ type PeruDepartment = (typeof enums.PeruDepartment)[number];
 type GenderSelection = (typeof enums.GenderSelection)[number];
 
 export function mapRawToDto(
-  row: RawOrganizationCsvRow,
+  row: Record<string, string>,
   validateFilter: boolean,
 ): [
   {
@@ -93,17 +93,14 @@ export function mapRawToDto(
 ] {
   const errors: string[] = [];
 
-  // Convertir el objeto a un objeto normal para evitar problemas de acceso
-  const normalRow = Object.fromEntries(Object.entries(row));
-
   // Validar campos requeridos
-  const ruc = normalRow.ruc;
-  const correo = normalRow.correo;
-  const nombre_contacto = normalRow.nombre_contacto;
-  const telefono = normalRow.telefono;
-  const pais = normalRow.pais;
-  const nombre_organizacion = normalRow.nombre_organizacion;
-  const sector = normalRow.sector;
+  const ruc = row.ruc;
+  const correo = row.correo;
+  const nombre_contacto = row.nombre_contacto;
+  const telefono = row.telefono;
+  const pais = row.pais;
+  const nombre_organizacion = row.nombre_organizacion;
+  const sector = row.sector;
 
   if (!ruc?.trim()) {
     errors.push('RUC is required');
@@ -136,7 +133,7 @@ export function mapRawToDto(
   }
 
   // Validar organizationSize
-  const tamano_organizacion = normalRow.tamano_organizacion;
+  const tamano_organizacion = row.tamano_organizacion;
   const organizationSize =
     tamano_organizacion?.toUpperCase() as OrganizationSize;
   if (!tamano_organizacion?.trim()) {
@@ -146,7 +143,7 @@ export function mapRawToDto(
   }
 
   // Validar topics de interés
-  const temas_interes = normalRow.temas_interes;
+  const temas_interes = row.temas_interes;
   const topics = temas_interes
     ?.split(',')
     .map((t) => t.trim().toUpperCase() as TopicCode)
@@ -173,7 +170,7 @@ export function mapRawToDto(
 
   if (validateFilter) {
     // Validar majors
-    const carreras = normalRow.carreras;
+    const carreras = row.carreras;
     const majors = (carreras ?? '')
       .split(',')
       .map((m) => m.trim().toUpperCase() as Major)
@@ -184,7 +181,7 @@ export function mapRawToDto(
     }
 
     // Validar departamentos
-    const departamentos_de_residencia = normalRow.departamentos_de_residencia;
+    const departamentos_de_residencia = row.departamentos_de_residencia;
     const departments = (departamentos_de_residencia ?? '')
       .split(',')
       .map((d) => d.trim().toUpperCase() as PeruDepartment)
@@ -197,7 +194,7 @@ export function mapRawToDto(
     }
 
     // Validar gender filter
-    const genero_preferido = normalRow.genero_preferido;
+    const genero_preferido = row.genero_preferido;
     const genderFilter = genero_preferido?.toUpperCase() as GenderSelection;
     if (!genero_preferido?.trim()) {
       errors.push('Gender preference is required');
@@ -206,7 +203,7 @@ export function mapRawToDto(
     }
 
     // Validar max interns
-    const max_internos = normalRow.max_internos;
+    const max_internos = row.max_internos;
     const maxInternsStr = max_internos?.trim();
     if (!maxInternsStr) {
       errors.push('Maximum number of interns is required');
@@ -215,7 +212,7 @@ export function mapRawToDto(
       if (isNaN(maxInterns) || maxInterns < 1) {
         errors.push('Maximum number of interns must be a positive number');
       } else {
-        const requisitos_extra = normalRow.requisitos_extra;
+        const requisitos_extra = row.requisitos_extra;
         filterDto = {
           maximumNumberOfInterns: maxInterns,
           studiedMajorFilter: majors,
@@ -261,16 +258,16 @@ export function parseAndValidateOrganizationCsv(
 
     // Extraer valores directamente del objeto raw usando Object.entries
     const entries = Object.entries(raw);
-    const normalRow: any = {};
+    const normalRow: Record<string, string> = {};
 
     // Crear un objeto normal con todas las propiedades
     for (const [key, value] of entries) {
-      normalRow[key.trim()] = value; // Trim para eliminar espacios
+      normalRow[key.trim()] = value as string; // Trim para eliminar espacios
     }
 
     // Extraer valores específicos
-    const rucValue = normalRow.ruc;
-    const emailValue = normalRow.correo;
+    const rucValue = row.ruc;
+    const emailValue = row.correo;
 
     // Validar que el objeto raw tenga las propiedades necesarias
     if (!raw || typeof raw !== 'object') {
@@ -291,10 +288,7 @@ export function parseAndValidateOrganizationCsv(
       continue;
     }
 
-    const [dto, errors] = mapRawToDto(
-      normalRow as RawOrganizationCsvRow,
-      validateFilter,
-    );
+    const [dto, errors] = mapRawToDto(normalRow, validateFilter);
 
     const ruc = rucValue.trim();
     if (seenRucs.has(ruc)) {

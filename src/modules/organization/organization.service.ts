@@ -19,7 +19,6 @@ import { Prisma } from '@prisma/client';
 import {
   parseAndValidateOrganizationCsv,
   parseOrganizationCsv,
-  RawOrganizationCsvRow,
 } from './utils/organization-csv-parser.utils';
 import { S3Service } from '../s3/s3.service';
 

@@ -32,7 +32,6 @@ import {
   FileFieldsInterceptor,
   FileInterceptor,
 } from '@nestjs/platform-express';
-import { parseOrganizationCsv } from './utils/organization-csv-parser.utils';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
