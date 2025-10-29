@@ -33,11 +33,11 @@ const enums = {
   OrganizationSize: ['SMALL', 'LARGE'] as const,
   TopicCode: ['HC', 'HH', 'CN'] as const,
   Major: [
-    'ENVIRONMENTAL_ENGINEERING',
-    'FOREST_ENGINEERING',
-    'BIOLOGY',
-    'ENVIRONMENTAL_MANAGEMENT',
-    'OTHERS',
+    'Ingenieria_Ambiental',
+    'Ingenieria_Forestal',
+    'Biologia',
+    'Gestion_Ambientas',
+    'Otras',
   ] as const,
   PeruDepartment: [
     'AMAZONAS',
@@ -67,7 +67,11 @@ const enums = {
     'TUMBES',
     'UCAYALI',
   ] as const,
-  GenderSelection: ['MALE_ONLY', 'FEMALE_ONLY', 'BOTH'] as const,
+  GenderSelection: [
+    'Unicamente_Masculino',
+    'Unicamente_Femenino',
+    'Ambos',
+  ] as const,
 };
 
 type OrganizationSize = (typeof enums.OrganizationSize)[number];
