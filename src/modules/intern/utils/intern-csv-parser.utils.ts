@@ -30,13 +30,13 @@ export function parseInternCsv(content: Buffer): RawInternCsvRow[] {
 
 const enums = {
   DocumentType: ['DNI', 'CE', 'PASSPORT'] as const,
-  Gender: ['MALE', 'FEMALE', 'I_PREFER_NOT_TO_SAY_IT'] as const,
+  Gender: ['Masculino', 'Femenino', 'Prefiero_No_Decirlo'] as const,
   Major: [
-    'ENVIRONMENTAL_ENGINEERING',
-    'FOREST_ENGINEERING',
-    'BIOLOGY',
-    'ENVIRONMENTAL_MANAGEMENT',
-    'OTHERS',
+    'Ingenieria_Ambiental',
+    'Ingenieria_Forestal',
+    'Biologia',
+    'Gestion_Ambientas',
+    'Otras',
   ] as const,
   TopicCode: ['HC', 'HH', 'CN'] as const,
   PeruDepartment: [
@@ -133,8 +133,8 @@ function mapRawToDto(row: RawInternCsvRow): [CreateInternDto | null, string[]] {
     errors.push('peruDepartment is required when country is Peru');
   }
 
-  if (dto.majorInProgress === 'OTHERS' && !dto.otherMajor) {
-    errors.push('otherMajor is required when majorInProgress is OTHERS');
+  if (dto.majorInProgress === 'Otras' && !dto.otherMajor) {
+    errors.push('otherMajor is required when majorInProgress is Otras');
   }
 
   if (isNaN(dto.graduationYear)) {

@@ -417,14 +417,14 @@ export class InternService {
 
     let genderValues: Gender[] | undefined;
     switch (genderFilter) {
-      case 'MALE_ONLY':
-        genderValues = ['MALE'];
+      case 'Unicamente_Masculino':
+        genderValues = ['Masculino'];
         break;
-      case 'FEMALE_ONLY':
-        genderValues = ['FEMALE'];
+      case 'Unicamente_Femenino':
+        genderValues = ['Femenino'];
         break;
-      case 'BOTH':
-        genderValues = ['MALE', 'FEMALE', 'I_PREFER_NOT_TO_SAY_IT'];
+      case 'Ambos':
+        genderValues = ['Masculino', 'Femenino', 'Prefiero_No_Decirlo'];
         break;
     }
 
