@@ -267,7 +267,7 @@ enum Major {
   Ingenieria_Ambiental @map("ENVIRONMENTAL_ENGINEERING")
   Ingenieria_Forestal @map("FOREST_ENGINEERING")
   Biologia @map("BIOLOGY")
-  Gestion_Ambientas @map("ENVIRONMENTAL_MANAGEMENT")
+  Gestion_Ambiental @map("ENVIRONMENTAL_MANAGEMENT")
   Otras @map("OTHERS")
 }
 

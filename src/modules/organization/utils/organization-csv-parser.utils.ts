@@ -36,7 +36,7 @@ const enums = {
     'Ingenieria_Ambiental',
     'Ingenieria_Forestal',
     'Biologia',
-    'Gestion_Ambientas',
+    'Gestion_Ambiental',
     'Otras',
   ] as const,
   PeruDepartment: [
@@ -79,6 +79,19 @@ type TopicCode = (typeof enums.TopicCode)[number];
 type Major = (typeof enums.Major)[number];
 type PeruDepartment = (typeof enums.PeruDepartment)[number];
 type GenderSelection = (typeof enums.GenderSelection)[number];
+
+function normalizeEnumValue<T extends readonly string[]>(
+  rawValue: string | undefined,
+  validValues: T,
+): T[number] | null {
+  if (!rawValue) return null;
+
+  const normalized = rawValue.trim().toLowerCase().replace(/\s+/g, '_');
+  const match = validValues.find(
+    (v) => v.toLowerCase().replace(/\s+/g, '_') === normalized,
+  );
+  return match || null;
+}
 
 function mapRawToDto(
   row: RawOrganizationCsvRow,
@@ -124,11 +137,10 @@ function mapRawToDto(
   if (validateFilter) {
     const majors = (row.carreras ?? '')
       .split(',')
-      .map((m) => m.trim().toUpperCase() as Major)
-      .filter((m) => m);
-    const invalidMajors = majors.filter((m) => !enums.Major.includes(m));
-    if (invalidMajors.length > 0) {
-      errors.push(`Invalid majors: ${invalidMajors.join(', ')}`);
+      .map((m) => normalizeEnumValue(m, enums.Major))
+      .filter((m): m is Major => !!m);
+    if ((row.carreras ?? '').trim() && majors.length === 0) {
+      errors.push(`Invalid majors: ${row.carreras}`);
     }
 
     const departments = (row.departamentos_de_residencia ?? '')
@@ -142,8 +154,11 @@ function mapRawToDto(
       errors.push(`Invalid Peru departments: ${invalidDepartments.join(', ')}`);
     }
 
-    const genderFilter = row.genero_preferido?.toUpperCase() as GenderSelection;
-    if (!enums.GenderSelection.includes(genderFilter)) {
+    const genderFilter = normalizeEnumValue(
+      row.genero_preferido,
+      enums.GenderSelection,
+    );
+    if (!genderFilter) {
       errors.push(`Invalid gender filter: '${row.genero_preferido}'`);
     }
 
@@ -156,7 +171,7 @@ function mapRawToDto(
       maximumNumberOfInterns: maxInterns,
       studiedMajorFilter: majors ?? [],
       placeOfResidenceFilter: departments ?? [],
-      genderFilter,
+      genderFilter: genderFilter as GenderSelection,
       extraRequirements: row.requisitos_extra?.trim() || undefined,
     };
   }

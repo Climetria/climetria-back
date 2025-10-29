@@ -35,7 +35,7 @@ const enums = {
     'Ingenieria_Ambiental',
     'Ingenieria_Forestal',
     'Biologia',
-    'Gestion_Ambientas',
+    'Gestion_Ambiental',
     'Otras',
   ] as const,
   TopicCode: ['HC', 'HH', 'CN'] as const,
@@ -75,23 +75,32 @@ type Major = (typeof enums.Major)[number];
 type TopicCode = (typeof enums.TopicCode)[number];
 type PeruDepartment = (typeof enums.PeruDepartment)[number];
 
+function normalizeEnumValue<T extends readonly string[]>(
+  value: string | undefined,
+  allowed: T,
+): T[number] | null {
+  if (!value) return null;
+  const match = allowed.find(
+    (v) => v.toLowerCase() === value.trim().toLowerCase(),
+  );
+  return match || null;
+}
+
 function mapRawToDto(row: RawInternCsvRow): [CreateInternDto | null, string[]] {
   const errors: string[] = [];
 
-  const gender = row.genero?.toUpperCase() as Gender;
-  if (!enums.Gender.includes(gender)) {
-    errors.push(`Invalid gender: '${row.genero}'`);
-  }
+  const gender = normalizeEnumValue(row.genero, enums.Gender);
+  if (!gender) errors.push(`Invalid gender: '${row.genero}'`);
 
-  const documentType = row.tipo_documento?.toUpperCase() as DocumentType;
-  if (!enums.DocumentType.includes(documentType)) {
+  const documentType = normalizeEnumValue(
+    row.tipo_documento,
+    enums.DocumentType,
+  );
+  if (!documentType)
     errors.push(`Invalid document type: '${row.tipo_documento}'`);
-  }
 
-  const majorInProgress = row.carrera?.toUpperCase() as Major;
-  if (!enums.Major.includes(majorInProgress)) {
-    errors.push(`Invalid major: '${row.carrera}'`);
-  }
+  const majorInProgress = normalizeEnumValue(row.carrera, enums.Major);
+  if (!majorInProgress) errors.push(`Invalid major: '${row.carrera}'`);
 
   const topics = row.temas_interes
     ?.split(',')
@@ -110,16 +119,16 @@ function mapRawToDto(row: RawInternCsvRow): [CreateInternDto | null, string[]] {
   }
 
   const dto: CreateInternDto = {
-    documentType,
+    documentType: documentType as DocumentType,
     document: row.documento,
     email: row.correo,
     firstNames: row.nombres,
     lastNameFather: row.apellido_paterno,
     lastNameMother: row.apellido_materno,
-    gender,
+    gender: gender as Gender,
     phone: row.telefono,
     universityName: row.universidad,
-    majorInProgress,
+    majorInProgress: majorInProgress as Major,
     graduationYear: parseInt(row.anio_graduacion),
     referralSource: row.fuente,
     topicsOfInterest: topics,
