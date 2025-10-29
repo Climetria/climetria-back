@@ -264,11 +264,11 @@ enum TopicCode {
 }
 
 enum Major {
-  ENVIRONMENTAL_ENGINEERING
-  FOREST_ENGINEERING
-  BIOLOGY
-  ENVIRONMENTAL_MANAGEMENT
-  OTHERS
+  Ingenieria_Ambiental @map("ENVIRONMENTAL_ENGINEERING")
+  Ingenieria_Forestal @map("FOREST_ENGINEERING")
+  Biologia @map("BIOLOGY")
+  Gestion_Ambientas @map("ENVIRONMENTAL_MANAGEMENT")
+  Otras @map("OTHERS")
 }
 
 enum PeruDepartment {
@@ -301,15 +301,15 @@ enum PeruDepartment {
 }
 
 enum Gender {
-  MALE
-  FEMALE
-  I_PREFER_NOT_TO_SAY_IT
+  Masculino @map("MALE")
+  Femenino @map("FEMALE")
+  Prefiero_No_Decirlo @map("I_PREFER_NOT_TO_SAY_IT")
 }
 
 enum GenderSelection {
-  MALE_ONLY
-  FEMALE_ONLY
-  BOTH
+  Unicamente_Masculino @map("MALE_ONLY")
+  Unicamente_Femenino @map("FEMALE_ONLY")
+  Ambos @map("BOTH")
 }
 
 enum Attendance {
