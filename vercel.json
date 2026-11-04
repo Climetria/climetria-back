@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "yarn vercel-build && mkdir -p public",
+  "buildCommand": "yarn vercel-build",
   "outputDirectory": "public",
   "regions": [
     "cle1"
