@@ -15,6 +15,7 @@ import { CourseResponseDto } from './dto/course-response.dto';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('courses')
 @UseGuards(JwtAuthGuard)
@@ -22,6 +23,7 @@ export class CourseController {
   constructor(private readonly courseService: CourseService) {}
 
   @Get()
+  @Roles('admin', 'mentor')
   async findAll(): Promise<CourseResponseDto[]> {
     const courses = await this.courseService.findAll();
     return courses.map((c) => CourseResponseDto.fromEntity(c));

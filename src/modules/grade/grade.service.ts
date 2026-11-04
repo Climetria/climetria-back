@@ -24,6 +24,17 @@ export class GradeService {
     return grades.map((g) => Grade.fromPrisma(g));
   }
 
+  async isGradedByMentor(
+    gradeId: string,
+    mentorAuthUserId: string,
+  ): Promise<boolean> {
+    const grade = await this.prisma.grade.findFirst({
+      where: { id: gradeId, mentor: { authUserId: mentorAuthUserId } },
+      select: { id: true },
+    });
+    return grade !== null;
+  }
+
   async findAllByMentor(mentorAuthUserId: string): Promise<Grade[]> {
     const mentorExists = await this.prisma.mentor.findFirst({
       where: { authUserId: mentorAuthUserId },

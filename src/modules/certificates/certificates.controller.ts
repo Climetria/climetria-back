@@ -1,8 +1,10 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt.guard';
 import { CertificatesService } from './certificates.service';
 import { CertificateInternshipResponseDto } from './dto/certificate-response.dto';
 
 @Controller('certificates')
+@UseGuards(JwtAuthGuard)
 export class CertificatesController {
   constructor(private readonly certificatesService: CertificatesService) {}
 

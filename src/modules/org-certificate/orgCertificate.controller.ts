@@ -9,8 +9,10 @@ import {
   Patch,
   Post,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt.guard';
 import { OrgCertificateService } from './orgCertificate.service';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { CreateOrgCertificateDto } from './dto/create-orgCertificate.dto';
@@ -18,6 +20,7 @@ import { OrgCertificateResponseDto } from './dto/orgCertificate-response.dto';
 import { UpdateOrgCertificateDto } from './dto/update-orgCertificate.dto';
 
 @Controller()
+@UseGuards(JwtAuthGuard)
 export class OrgCertificateController {
   constructor(private readonly orgCertificateService: OrgCertificateService) {}
 

@@ -19,9 +19,9 @@ import { CreateInternDto } from './dto/create-intern.dto';
 import { InternResponseDto } from './dto/intern-response.dto';
 import { UpdateInternDto } from './dto/update-intern.dto';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { Roles } from '../auth/roles.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { parseInternCsv } from './utils/intern-csv-parser.utils';
-import { IsUserAdmin, IsUserMentor } from '../auth/auth.decorator';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -29,6 +29,7 @@ export class InternController {
   constructor(private readonly internService: InternService) {}
 
   @Get('interns')
+  @Roles('admin', 'mentor')
   async findAll(): Promise<InternResponseDto[]> {
     const interns = await this.internService.findAll();
     return interns.map((i) => InternResponseDto.fromEntity(i));
@@ -37,11 +38,7 @@ export class InternController {
   @Get('courses/:courseId/interns')
   async findAllByCourse(
     @Param('courseId') courseId: string,
-    @IsUserAdmin() isAdmin: boolean,
-    @IsUserMentor() isMentor: boolean,
   ): Promise<InternResponseDto[]> {
-    console.log(isAdmin);
-    console.log(isMentor);
     const interns = await this.internService.findAllByCourse(courseId);
     return interns.map((i) => InternResponseDto.fromEntity(i));
   }

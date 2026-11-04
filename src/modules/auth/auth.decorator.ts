@@ -19,7 +19,7 @@ export const JwtUser = createParamDecorator(
   },
 );
 
-function hasRole(user: JwtPayload, role: string): boolean {
+export function hasRole(user: JwtPayload, role: string): boolean {
   return user.app_metadata?.roles?.includes(role) ?? false;
 }
 

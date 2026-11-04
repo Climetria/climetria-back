@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -10,6 +11,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt.guard';
+import { IsUserAdmin, JwtPayload, JwtUser } from '../auth/auth.decorator';
+import { Roles } from '../auth/roles.decorator';
 import { GradeService } from './grade.service';
 import { GradeResponseDto } from './dto/grade-response.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
@@ -26,9 +29,16 @@ export class GradeController {
   }
 
   @Get('mentor/:mentorAuthUserId/grades')
+  @Roles('admin', 'mentor')
   async findByMentor(
     @Param('mentorAuthUserId') mentorAuthUserId: string,
+    @JwtUser() user: JwtPayload,
+    @IsUserAdmin() isAdmin: boolean,
   ): Promise<GradeResponseDto[]> {
+    // Un mentor solo puede ver sus propias notas
+    if (!isAdmin && user.sub !== mentorAuthUserId) {
+      throw new ForbiddenException('Solo puedes ver tus propias notas');
+    }
     const grades = await this.gradeService.findAllByMentor(mentorAuthUserId);
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
@@ -72,10 +82,20 @@ export class GradeController {
   }
 
   @Patch('grades/:gradeId')
+  @Roles('admin', 'mentor')
   async updateByGrade(
     @Param('gradeId') gradeId: string,
     @Body() dto: UpdateGradeDto,
+    @JwtUser() user: JwtPayload,
+    @IsUserAdmin() isAdmin: boolean,
   ): Promise<GradeResponseDto> {
+    // Un mentor solo puede calificar a los practicantes que tiene asignados
+    if (
+      !isAdmin &&
+      !(await this.gradeService.isGradedByMentor(gradeId, user.sub))
+    ) {
+      throw new ForbiddenException('Solo puedes editar tus propias notas');
+    }
     const grade = await this.gradeService.updateByGrade(gradeId, dto);
     return GradeResponseDto.fromEntity(grade);
   }
