@@ -5,8 +5,9 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export interface JwtPayload {
   sub: string;
-  username: string;
-  'cognito:groups'?: string[];
+  email?: string;
+  // Los roles (admin, mentor) se guardan en app_metadata: solo el backend puede modificarlos
+  app_metadata?: { roles?: string[] };
   iat?: number;
   exp?: number;
 }
@@ -19,8 +20,7 @@ export const JwtUser = createParamDecorator(
 );
 
 function hasRole(user: JwtPayload, role: string): boolean {
-  const groups = user['cognito:groups'] ?? [];
-  return groups.includes(role);
+  return user.app_metadata?.roles?.includes(role) ?? false;
 }
 
 export const IsUserAdmin = createParamDecorator(

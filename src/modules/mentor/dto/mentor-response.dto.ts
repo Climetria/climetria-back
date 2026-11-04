@@ -16,7 +16,7 @@ export class MentorResponseDto {
   email: string;
 
   @Expose()
-  cognitoUser: string;
+  authUserId: string;
 
   @Expose()
   firstNames: string;

@@ -5,13 +5,16 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // DATABASE_URL: pooler de Supabase (puerto 6543, para la app)
+  // DIRECT_URL: conexión directa (puerto 5432, para prisma db push)
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -23,41 +26,41 @@ model User {
 }
 
 model Course {
-  id                      String          @id @default(cuid())
-  name                    String
-  description             String?
-  startDate               DateTime        @db.Date
-  endDate                 DateTime        @db.Date
-  mentorCourses           MentorCourse[]
-  organizationCourses     OrganizationCourse[]
-  internCourses           InternCourse[] 
-  mentorAssignments       MentorAssignment[]
-  internAssignments       InternAssignment[]
-  orgCertificateCourses   OrganizationCertificateCourse[]
-  grades                  Grade[]
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
-  deletedAt               DateTime? 
+  id                    String                          @id @default(cuid())
+  name                  String
+  description           String?
+  startDate             DateTime                        @db.Date
+  endDate               DateTime                        @db.Date
+  mentorCourses         MentorCourse[]
+  organizationCourses   OrganizationCourse[]
+  internCourses         InternCourse[]
+  mentorAssignments     MentorAssignment[]
+  internAssignments     InternAssignment[]
+  orgCertificateCourses OrganizationCertificateCourse[]
+  grades                Grade[]
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+  deletedAt             DateTime?
 }
 
 model Mentor {
-  id                  String        @id @default(cuid())
-  documentType        DocumentType   
-  document            String        @unique @db.VarChar(15)
-  email               String        @unique
-  cognitoUser         String        @default("")
-  firstNames          String
-  lastNameFather      String
-  lastNameMother      String
-  phone               String
-  country             String
-  peruDepartment      PeruDepartment?
-  mentorCourses       MentorCourse[]
-  mentorAssignments   MentorAssignment[]
-  grades              Grade[]
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  deletedAt           DateTime?
+  id                String             @id @default(cuid())
+  documentType      DocumentType
+  document          String             @unique @db.VarChar(15)
+  email             String             @unique
+  authUserId        String             @default("")
+  firstNames        String
+  lastNameFather    String
+  lastNameMother    String
+  phone             String
+  country           String
+  peruDepartment    PeruDepartment?
+  mentorCourses     MentorCourse[]
+  mentorAssignments MentorAssignment[]
+  grades            Grade[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 }
 
 model MentorCourse {
@@ -66,78 +69,78 @@ model MentorCourse {
   courseId  String
   createdAt DateTime @default(now())
 
-  mentor    Mentor   @relation(fields: [mentorId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
+  mentor Mentor @relation(fields: [mentorId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
 
   @@unique([mentorId, courseId])
 }
 
 model Organization {
-  id                      String   @id @default(cuid())
-  ruc                     String   @unique
-  email                   String   @unique
-  contactName             String
-  phone                   String   @db.VarChar(15)
-  country                 String
-  organizationName        String
-  organizationSize        OrganizationSize
-  sector                  String
-  topicsOfInterest        TopicCode[]
-  logoUrl                 String?
-  signerFullName          String?
-  signerTitle             String?
-  signerSignatureUrl      String?
-  organizationCourses     OrganizationCourse[]
-  mentorAssignments       MentorAssignment[]
-  internAssignments       InternAssignment[]
-  grades                  Grade[]
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-  deletedAt               DateTime?
+  id                  String               @id @default(cuid())
+  ruc                 String               @unique
+  email               String               @unique
+  contactName         String
+  phone               String               @db.VarChar(15)
+  country             String
+  organizationName    String
+  organizationSize    OrganizationSize
+  sector              String
+  topicsOfInterest    TopicCode[]
+  logoUrl             String?
+  signerFullName      String?
+  signerTitle         String?
+  signerSignatureUrl  String?
+  organizationCourses OrganizationCourse[]
+  mentorAssignments   MentorAssignment[]
+  internAssignments   InternAssignment[]
+  grades              Grade[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
 }
 
 model OrganizationCourse {
-  id                      String   @id @default(cuid())
-  organizationId          String
-  courseId                String
-  maximumNumberOfInterns  Int
-  placeOfResidenceFilter  PeruDepartment[]
-  studiedMajorFilter      Major[]
-  genderFilter            GenderSelection
-  extraRequirements       String?
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime  @updatedAt
+  id                     String           @id @default(cuid())
+  organizationId         String
+  courseId               String
+  maximumNumberOfInterns Int
+  placeOfResidenceFilter PeruDepartment[]
+  studiedMajorFilter     Major[]
+  genderFilter           GenderSelection
+  extraRequirements      String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
 
-  organization    Organization   @relation(fields: [organizationId], references: [id])
-  course          Course         @relation(fields: [courseId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
 
   @@unique([organizationId, courseId])
 }
 
 model Intern {
-  id                  String        @id @default(cuid())
-  documentType        DocumentType   
-  document            String        @unique @db.VarChar(15)
-  email               String        @unique
-  firstNames          String
-  lastNameFather      String
-  lastNameMother      String
-  gender              Gender
-  phone               String        @db.VarChar(15)
-  universityName      String
-  majorInProgress     Major
-  otherMajor          String?
-  graduationYear      Int
-  referralSource      String
-  topicsOfInterest    TopicCode[]   
-  country             String
-  peruDepartment      PeruDepartment?
-  internCourses       InternCourse[]
-  internAssignments   InternAssignment[]
-  grades              Grade[]
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  deletedAt           DateTime?
+  id                String             @id @default(cuid())
+  documentType      DocumentType
+  document          String             @unique @db.VarChar(15)
+  email             String             @unique
+  firstNames        String
+  lastNameFather    String
+  lastNameMother    String
+  gender            Gender
+  phone             String             @db.VarChar(15)
+  universityName    String
+  majorInProgress   Major
+  otherMajor        String?
+  graduationYear    Int
+  referralSource    String
+  topicsOfInterest  TopicCode[]
+  country           String
+  peruDepartment    PeruDepartment?
+  internCourses     InternCourse[]
+  internAssignments InternAssignment[]
+  grades            Grade[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
 }
 
 model InternCourse {
@@ -146,78 +149,78 @@ model InternCourse {
   courseId  String
   createdAt DateTime @default(now())
 
-  intern    Intern   @relation(fields: [internId], references: [id])
-  course    Course   @relation(fields: [courseId], references: [id])
+  intern Intern @relation(fields: [internId], references: [id])
+  course Course @relation(fields: [courseId], references: [id])
 
-  @@unique([internId, courseId]) 
+  @@unique([internId, courseId])
 }
 
 model MentorAssignment {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   mentorId       String
   organizationId String
   courseId       String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  mentor         Mentor       @relation(fields: [mentorId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  course         Course       @relation(fields: [courseId], references: [id])
+  mentor       Mentor       @relation(fields: [mentorId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
 
-  @@unique([mentorId, organizationId, courseId]) 
+  @@unique([mentorId, organizationId, courseId])
 }
 
 model InternAssignment {
-  id             String       @id @default(cuid())
+  id             String   @id @default(cuid())
   internId       String
   organizationId String
   courseId       String
-  createdAt      DateTime     @default(now())
+  createdAt      DateTime @default(now())
 
-  intern         Intern       @relation(fields: [internId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  course         Course       @relation(fields: [courseId], references: [id])
+  intern       Intern       @relation(fields: [internId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  course       Course       @relation(fields: [courseId], references: [id])
 
-  @@unique([internId, organizationId, courseId]) 
+  @@unique([internId, organizationId, courseId])
 }
 
 model OrganizationCertificate {
-  id                      String          @id @default(cuid())
-  name                    String          @unique
-  logoUrl                 String?
-  signerFullName          String?
-  signerTitle             String?
-  signerSignatureUrl      String?
-  orgCertificateCourses   OrganizationCertificateCourse[]
-  createdAt               DateTime      @default(now())
-  updatedAt               DateTime      @updatedAt
-  deletedAt               DateTime?
+  id                    String                          @id @default(cuid())
+  name                  String                          @unique
+  logoUrl               String?
+  signerFullName        String?
+  signerTitle           String?
+  signerSignatureUrl    String?
+  orgCertificateCourses OrganizationCertificateCourse[]
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+  deletedAt             DateTime?
 }
 
 model OrganizationCertificateCourse {
-  id                String                    @id @default(cuid())
-  orgCertificateId  String
-  courseId          String
-  createdAt         DateTime                  @default(now())
+  id               String   @id @default(cuid())
+  orgCertificateId String
+  courseId         String
+  createdAt        DateTime @default(now())
 
-  orgCertificate    OrganizationCertificate   @relation(fields: [orgCertificateId], references: [id])
-  course            Course                    @relation(fields: [courseId], references: [id])
+  orgCertificate OrganizationCertificate @relation(fields: [orgCertificateId], references: [id])
+  course         Course                  @relation(fields: [courseId], references: [id])
 
-  @@unique([orgCertificateId, courseId]) 
+  @@unique([orgCertificateId, courseId])
 }
 
 model Grade {
-  id                     String       @id @default(cuid())
+  id                     String      @id @default(cuid())
   internId               String
   courseId               String
   mentorId               String?
   organizationId         String?
-  s1                     Attendance? 
-  s2                     Attendance? 
-  s3                     Attendance? 
+  s1                     Attendance?
+  s2                     Attendance?
+  s3                     Attendance?
   s4                     Attendance?
   s5                     Attendance?
-  s6                     Attendance?    
-  initialCommitment      Int? 
+  s6                     Attendance?
+  initialCommitment      Int?
   assertiveCommunication Int?
   punctuality            Int?
   classParticipation     Int?
@@ -227,17 +230,17 @@ model Grade {
   redaction              Int?
   performance            Int?
   recommendation         String?
-  finalReportCheck       Boolean      @default(false)
-  talkCheck              Boolean      @default(false)
-  recommendationCheck    Boolean      @default(false)
-  createdAt              DateTime     @default(now())
-  updatedAt              DateTime     @updatedAt
+  finalReportCheck       Boolean     @default(false)
+  talkCheck              Boolean     @default(false)
+  recommendationCheck    Boolean     @default(false)
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
 
-  intern                 Intern         @relation(fields: [internId], references: [id])
-  course                 Course         @relation(fields: [courseId], references: [id])
-  mentor                 Mentor?        @relation(fields: [mentorId], references: [id])
-  organization           Organization?  @relation(fields: [organizationId], references: [id])
-  
+  intern       Intern        @relation(fields: [internId], references: [id])
+  course       Course        @relation(fields: [courseId], references: [id])
+  mentor       Mentor?       @relation(fields: [mentorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
   @@unique([internId, courseId])
 }
 
@@ -253,22 +256,22 @@ enum DocumentType {
 }
 
 enum OrganizationSize {
-  SMALL  // Micro or Small
-  LARGE  // Medium or Large
+  SMALL // Micro or Small
+  LARGE // Medium or Large
 }
 
 enum TopicCode {
-  HC  // Carbon Footprint and Climate Change
-  HH  // Water Footprint and Responsible Water Management
-  CN  // Carbon Neutrality
+  HC // Carbon Footprint and Climate Change
+  HH // Water Footprint and Responsible Water Management
+  CN // Carbon Neutrality
 }
 
 enum Major {
   Ingenieria_Ambiental @map("ENVIRONMENTAL_ENGINEERING")
-  Ingenieria_Forestal @map("FOREST_ENGINEERING")
-  Biologia @map("BIOLOGY")
-  Gestion_Ambiental @map("ENVIRONMENTAL_MANAGEMENT")
-  Otras @map("OTHERS")
+  Ingenieria_Forestal  @map("FOREST_ENGINEERING")
+  Biologia             @map("BIOLOGY")
+  Gestion_Ambiental    @map("ENVIRONMENTAL_MANAGEMENT")
+  Otras                @map("OTHERS")
 }
 
 enum PeruDepartment {
@@ -301,15 +304,15 @@ enum PeruDepartment {
 }
 
 enum Gender {
-  Masculino @map("MALE")
-  Femenino @map("FEMALE")
+  Masculino           @map("MALE")
+  Femenino            @map("FEMALE")
   Prefiero_No_Decirlo @map("I_PREFER_NOT_TO_SAY_IT")
 }
 
 enum GenderSelection {
   Unicamente_Masculino @map("MALE_ONLY")
-  Unicamente_Femenino @map("FEMALE_ONLY")
-  Ambos @map("BOTH")
+  Unicamente_Femenino  @map("FEMALE_ONLY")
+  Ambos                @map("BOTH")
 }
 
 enum Attendance {

@@ -25,11 +25,11 @@ export class GradeController {
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
 
-  @Get('mentor/:mentorCognitoUser/grades')
+  @Get('mentor/:mentorAuthUserId/grades')
   async findByMentor(
-    @Param('mentorCognitoUser') mentorCognitoUser: string,
+    @Param('mentorAuthUserId') mentorAuthUserId: string,
   ): Promise<GradeResponseDto[]> {
-    const grades = await this.gradeService.findAllByMentor(mentorCognitoUser);
+    const grades = await this.gradeService.findAllByMentor(mentorAuthUserId);
     return grades.map((g) => GradeResponseDto.fromEntity(g));
   }
 

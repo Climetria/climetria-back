@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "yarn vercel-build",
+  "regions": ["cle1"],
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "{dist,prisma}/**",
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [{ "source": "/(.*)", "destination": "/api" }]
+}

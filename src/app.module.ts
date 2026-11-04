@@ -11,7 +11,8 @@ import { CourseModule } from './modules/course/course.module';
 import { GradeModule } from './modules/grade/grade.module';
 import { MetricsModule } from './modules/metrics/metrics.module';
 import { CertificatesModule } from './modules/certificates/certificates.module';
-import { S3Module } from './modules/s3/s3.module';
+import { StorageModule } from './modules/storage/storage.module';
+import { SupabaseModule } from './modules/supabase/supabase.module';
 import { OrgCertificateModule } from './modules/org-certificate/orgCertificate.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { OrgCertificateModule } from './modules/org-certificate/orgCertificate.m
       isGlobal: true,
     }),
     PrismaModule,
+    SupabaseModule,
     OrganizationModule,
     InternModule,
     MentorModule,
@@ -28,7 +30,7 @@ import { OrgCertificateModule } from './modules/org-certificate/orgCertificate.m
     GradeModule,
     MetricsModule,
     CertificatesModule,
-    S3Module,
+    StorageModule,
     OrgCertificateModule,
   ],
   controllers: [AppController],

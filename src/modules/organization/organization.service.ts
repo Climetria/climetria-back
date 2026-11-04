@@ -20,13 +20,13 @@ import {
   parseAndValidateOrganizationCsv,
   parseOrganizationCsv,
 } from './utils/organization-csv-parser.utils';
-import { S3Service } from '../s3/s3.service';
+import { StorageService } from '../storage/storage.service';
 
 @Injectable()
 export class OrganizationService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly s3Service: S3Service,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(dto: CreateOrganizationDto): Promise<Organization> {
@@ -409,11 +409,11 @@ export class OrganizationService {
     > = { ...dto };
 
     if (logoFile) {
-      updates.logoUrl = await this.s3Service.uploadFile(logoFile, 'logos');
+      updates.logoUrl = await this.storageService.uploadFile(logoFile, 'logos');
     }
 
     if (signatureFile) {
-      updates.signerSignatureUrl = await this.s3Service.uploadFile(
+      updates.signerSignatureUrl = await this.storageService.uploadFile(
         signatureFile,
         'signatures',
       );

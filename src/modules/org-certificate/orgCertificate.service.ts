@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { S3Service } from '../s3/s3.service';
+import { StorageService } from '../storage/storage.service';
 import { CreateOrgCertificateDto } from './dto/create-orgCertificate.dto';
 import { OrgCertificate } from './entities/orgCertificate.entity';
 import { UpdateOrgCertificateDto } from './dto/update-orgCertificate.dto';
@@ -14,7 +14,7 @@ import { UpdateOrgCertificateDto } from './dto/update-orgCertificate.dto';
 export class OrgCertificateService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly s3Service: S3Service,
+    private readonly storageService: StorageService,
   ) {}
 
   async createOrgCertificate(
@@ -36,10 +36,10 @@ export class OrgCertificateService {
       data: {
         ...dto,
         logoUrl: logoFile
-          ? await this.s3Service.uploadFile(logoFile, 'logos')
+          ? await this.storageService.uploadFile(logoFile, 'logos')
           : undefined,
         signerSignatureUrl: signatureFile
-          ? await this.s3Service.uploadFile(signatureFile, 'signatures')
+          ? await this.storageService.uploadFile(signatureFile, 'signatures')
           : undefined,
         orgCertificateCourses: {
           create: { courseId },
@@ -280,14 +280,14 @@ export class OrgCertificateService {
       let signerSignatureUrl = orgCertificate.signerSignatureUrl;
 
       if (logoFile) {
-        logoUrl = await this.s3Service.uploadFile(
+        logoUrl = await this.storageService.uploadFile(
           logoFile,
           `org-certificates/${orgCertificateId}/logo-${Date.now()}`,
         );
       }
 
       if (signatureFile) {
-        signerSignatureUrl = await this.s3Service.uploadFile(
+        signerSignatureUrl = await this.storageService.uploadFile(
           signatureFile,
           `org-certificates/${orgCertificateId}/signature-${Date.now()}`,
         );

@@ -1,75 +1,63 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
-import {
-  AdminAddUserToGroupCommand,
-  AdminCreateUserCommand,
-  AdminGetUserCommand,
-  CognitoIdentityProviderClient,
-} from '@aws-sdk/client-cognito-identity-provider';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { User } from '@supabase/supabase-js';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Injectable()
 export class AuthService {
-  private cognitoClient: CognitoIdentityProviderClient;
-  private readonly userPoolId = process.env.COGNITO_USER_POOL_ID!;
-  private readonly region = process.env.AWS_REGION || 'us-east-1';
-  constructor() {
-    this.cognitoClient = new CognitoIdentityProviderClient({
-      region: this.region,
-    });
+  constructor(private readonly supabase: SupabaseService) {}
+
+  // Devuelve el id del usuario de Supabase Auth con ese correo. Si no existe,
+  // le envía una invitación por correo para que defina su contraseña.
+  async createOrGetAuthUser(email: string, role?: string): Promise<string> {
+    const user =
+      (await this.findUserByEmail(email)) ?? (await this.invite(email));
+
+    if (role) {
+      const roles = (user.app_metadata?.roles as string[] | undefined) ?? [];
+      if (!roles.includes(role)) {
+        const { error } = await this.supabase.client.auth.admin.updateUserById(
+          user.id,
+          { app_metadata: { roles: [...roles, role] } },
+        );
+        if (error) {
+          console.error('Failed to set user role:', error);
+          throw new InternalServerErrorException(
+            'User created but could not be assigned a role',
+          );
+        }
+      }
+    }
+
+    return user.id;
   }
 
-  async createOrGetCognitoUser(
-    email: string,
-    groupName?: string,
-  ): Promise<string> {
-    let username: string;
-
-    try {
-      const getUserCommand = new AdminGetUserCommand({
-        UserPoolId: this.userPoolId,
-        Username: email,
+  private async invite(email: string): Promise<User> {
+    const { data, error } =
+      await this.supabase.client.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${process.env.FRONTEND_URL}/auth/set-password/`,
       });
+    if (error) {
+      console.error('Error inviting user:', error);
+      throw new InternalServerErrorException('Failed to get or create user');
+    }
+    return data.user;
+  }
 
-      const response = await this.cognitoClient.send(getUserCommand);
-      username = response.Username!;
-    } catch (error: any) {
-      if (error.name === 'UserNotFoundException') {
-        const createUserCommand = new AdminCreateUserCommand({
-          UserPoolId: this.userPoolId,
-          Username: email,
-          UserAttributes: [
-            { Name: 'email', Value: email },
-            { Name: 'email_verified', Value: 'true' },
-          ],
-        });
-
-        const createResponse = await this.cognitoClient.send(createUserCommand);
-        username = createResponse.User?.Username ?? email;
-      } else {
-        console.error('Error checking user in Cognito:', error);
+  // La API de administración no busca por correo, así que se recorren las páginas
+  private async findUserByEmail(email: string): Promise<User | null> {
+    const target = email.toLowerCase();
+    for (let page = 1; ; page++) {
+      const { data, error } = await this.supabase.client.auth.admin.listUsers({
+        page,
+        perPage: 1000,
+      });
+      if (error) {
+        console.error('Error listing users:', error);
         throw new InternalServerErrorException('Failed to get or create user');
       }
+      const found = data.users.find((u) => u.email?.toLowerCase() === target);
+      if (found) return found;
+      if (data.users.length < 1000) return null;
     }
-
-    // ✅ Add to group if provided
-    if (groupName) {
-      try {
-        const addToGroupCommand = new AdminAddUserToGroupCommand({
-          UserPoolId: this.userPoolId,
-          Username: username,
-          GroupName: groupName,
-        });
-
-        await this.cognitoClient.send(addToGroupCommand);
-      } catch (err) {
-        console.error('Failed to add user to group:', err);
-        throw new InternalServerErrorException(
-          'User created but could not be added to group',
-        );
-      }
-    }
-
-    return username;
   }
 }

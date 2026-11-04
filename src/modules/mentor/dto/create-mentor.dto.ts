@@ -13,7 +13,7 @@ export class CreateMentorDto {
 
   @IsString()
   @IsOptional()
-  cognitoUser: string;
+  authUserId: string;
 
   @IsString()
   firstNames: string;

@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { OrgCertificateService } from './orgCertificate.service';
 import { OrgCertificateController } from './orgCertificate.controller';
-import { S3Module } from '../s3/s3.module';
+import { StorageModule } from '../storage/storage.module';
 
 @Module({
-  imports: [S3Module],
+  imports: [StorageModule],
   providers: [OrgCertificateService],
   controllers: [OrgCertificateController],
 })
